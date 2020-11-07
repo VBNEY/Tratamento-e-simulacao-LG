@@ -10,7 +10,7 @@ library(dplyr)
 #CARREGA SEQUENCIA DE LINGOTAMENTO--------------------------------------------------------------------------------------
 BD = 'D:/Agrupamento LG/seq_ling.txt'
 seqling <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
-head(seqling)
+seqling$seqid<-1:NROW(seqling)
 
 #CARREGA PADCST SGF-----------------------------------------------------------------------------------------------------
 BD = 'D:/Agrupamento LG/pad_sgf.txt'
@@ -40,22 +40,17 @@ write.table(sgf_lg, file="D:/Agrupamento LG/Geral.txt",row.names=F,sep='\t',dec 
 
 #Uniao da tabela da sequencia de lingotamento descasando a linha-----------------------------------------------
 
-#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
-#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
-
-seqling$seqid<-1:NROW(seqling)
 seqling2<-seqling
 seqling2$seqid<-seqling2$seqid-1
+for (nome in names(seqling2)){names(seqling2)[names(seqling2) ==nome]<-paste0(nome,'_post')}
 
 #JOIN COM LINHAS DESCASADAS
-seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid")
-
+seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid_post")
+str(seqlingfim)
 
 #GARANTE QUE AS LINHAS SÃO DE FATO CONSECUTIVAS
-seqlingfim<-seqlingfim[seqlingfim[,'Veio.x']==seqlingfim[,'Veio.y'] & 
-                         seqlingfim[,'Cod_seq.x']==seqlingfim[,'Cod_seq.y'],]
-
-
+seqlingfim<-seqlingfim[seqlingfim[,'Veio']==seqlingfim[,'Veio_post'] & 
+                         seqlingfim[,'Cod_seq']==seqlingfim[,'Cod_seq_post'],]
 
 
 #CARREGAMENTO PARA PREPARAR TABELA DO PADRÃO COM LARGURAS DE BQ-----------------------------------------------
@@ -94,13 +89,12 @@ df_consolidado <- read.table(file = BD, header = TRUE, sep=';',dec = ".", string
 sgf_distintos<-unique(df_consolidado$sgf)
 
 
-
 #uniao do df_consolidado com a sequencia de lingotamento----------------------------------------------------------------
 df_consolidado$chave<-paste0(df_consolidado$sgf,';',df_consolidado$lg_real)
 head(df_consolidado)
 
-seqlingfim$chave1<-paste0(seqlingfim$SGF.x,';',seqlingfim$LGBQ.x)
-seqlingfim$chave2<-paste0(seqlingfim$SGF.y,';',seqlingfim$LGBQ.y)
+seqlingfim$chave1<-paste0(seqlingfim$SGF,';',seqlingfim$LGBQ)
+seqlingfim$chave2<-paste0(seqlingfim$SGF_post,';',seqlingfim$LGBQ_post)
 head(seqlingfim)
 
 #JOIN DO 1 PADRAO COM df_consolidado
@@ -111,23 +105,21 @@ seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
 
 
 sum(seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y)
-sum(seqlingfim$lg_infln_placa.x!=seqlingfim$lg_infln_placa.y)
+sum(seqlingfim$lg_infln_placa!=seqlingfim$lg_infln_placa_post)
 
 mean(abs(seqlingfim$lgplacao.x-seqlingfim$lgplacao.y))
-mean(abs(seqlingfim$lg_infln_placa.x-seqlingfim$lg_infln_placa.y))
+mean(abs(seqlingfim$lg_infln_placa-seqlingfim$lg_infln_placa_post))
 
 mean(seqlingfim$lgplacao.x)
-mean(seqlingfim$lg_infln_placa.x)
+mean(seqlingfim$lg_infln_placa)
 
 
+#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
+#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
 
-campos<-c('DT.ling..x','Placao.x','Placao.y','PdCST.x','PdCST.y','SGF.x','SGF.y','lg_infln_placa.x','lg_infln_placa.y','lgplacao.x','lgplacao.y','LGBQ.x','LGBQ.y')
-seqlingfim[seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
 
-
+campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post')
 #Verificar as diferenças entre o padrão e a proposta
-seqlingfim<-seqlingfim[seqlingfim[,'sgf.x']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
-
-write.table(seqlingfim[,campos], file="seq_simulado4.csv",row.names=FALSE,sep=";")
+write.table(seqlingfim[seqlingfim[,'SGF']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa==seqlingfim$lg_infln_placa_post,campos], file="seq_simulado4.csv",row.names=FALSE,sep=";")
 
 
