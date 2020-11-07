@@ -38,6 +38,25 @@ names(sgf_lg)[names(sgf_lg) =='LGBQ']<-'lg_infln_bq'
 #SALVA O ARQUIVO PARA PROCESSAMENTO------------------
 write.table(sgf_lg, file="D:/Agrupamento LG/Geral.txt",row.names=F,sep='\t',dec = ".")
 
+#Uniao da tabela da sequencia de lingotamento descasando a linha-----------------------------------------------
+
+#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
+#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
+
+seqling$seqid<-1:NROW(seqling)
+seqling2<-seqling
+seqling2$seqid<-seqling2$seqid-1
+
+#JOIN COM LINHAS DESCASADAS
+seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid")
+
+
+#GARANTE QUE AS LINHAS SÃO DE FATO CONSECUTIVAS
+seqlingfim<-seqlingfim[seqlingfim[,'Veio.x']==seqlingfim[,'Veio.y'] & 
+                         seqlingfim[,'Cod_seq.x']==seqlingfim[,'Cod_seq.y'],]
+
+
+
 
 #CARREGAMENTO PARA PREPARAR TABELA DO PADRÃO COM LARGURAS DE BQ-----------------------------------------------
 BD = 'D:/Agrupamento LG/otimizado_processado_geral.csv'
@@ -76,45 +95,19 @@ sgf_distintos<-unique(df_consolidado$sgf)
 
 
 
-#Uniao da tabela da sequencia de lingotamento descasando a linha-----------------------------------------------
-
-#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
-#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
-
-seqling$seqid<-1:NROW(seqling)
-seqling2<-seqling
-seqling2$seqid<-seqling2$seqid-1
-
-#JOIN COM LINHAS DESCASADAS
-seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid")
-
-#GARANTE QUE AS LINHAS SÃO DE FATO CONSECUTIVAS
-seqlingfim<-seqlingfim[seqlingfim[,'Veio.x']==seqlingfim[,'Veio.y'] & 
-                       seqlingfim[,'Cod_seq.x']==seqlingfim[,'Cod_seq.y'] & 
-                       seqlingfim[,'Distr.x']==seqlingfim[,'Distr.y'],]
-
-
-#JOIN DO 1 PADRAO COM SGF
-seqlingfim<- merge(seqlingfim,pad_sfg, by.x = "PdCST.x" , by.y = "cd_pdcst_placa")
-#JOIN DO 2 PADRAO COM SGF
-seqlingfim<- merge(seqlingfim,pad_sfg, by.x = "PdCST.y" , by.y = "cd_pdcst_placa")
-
-
 #uniao do df_consolidado com a sequencia de lingotamento----------------------------------------------------------------
-
 df_consolidado$chave<-paste0(df_consolidado$sgf,';',df_consolidado$lg_real)
+head(df_consolidado)
+
 seqlingfim$chave1<-paste0(seqlingfim$SGF.x,';',seqlingfim$LGBQ.x)
 seqlingfim$chave2<-paste0(seqlingfim$SGF.y,';',seqlingfim$LGBQ.y)
+head(seqlingfim)
 
 #JOIN DO 1 PADRAO COM df_consolidado
 seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
 
 #JOIN DO 2 PADRAO COM df_consolidado
 seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
-
-
-#seqlingfim[seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
-#seqlingfim<-seqlingfim[seqlingfim[,'sgf.x']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
 
 
 sum(seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y)
@@ -125,10 +118,15 @@ mean(abs(seqlingfim$lg_infln_placa.x-seqlingfim$lg_infln_placa.y))
 
 mean(seqlingfim$lgplacao.x)
 mean(seqlingfim$lg_infln_placa.x)
-str(seqlingfim)
+
+
 
 campos<-c('DT.ling..x','Placao.x','Placao.y','PdCST.x','PdCST.y','SGF.x','SGF.y','lg_infln_placa.x','lg_infln_placa.y','lgplacao.x','lgplacao.y','LGBQ.x','LGBQ.y')
+seqlingfim[seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
 
+
+#Verificar as diferenças entre o padrão e a proposta
+seqlingfim<-seqlingfim[seqlingfim[,'sgf.x']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
 
 write.table(seqlingfim[,campos], file="seq_simulado4.csv",row.names=FALSE,sep=";")
 
