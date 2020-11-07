@@ -1,0 +1,135 @@
+library(mise)
+print('teste')
+mise()
+plot('x') 
+gc()
+rm(list = ls())
+library(dplyr)
+
+
+#CARREGA SEQUENCIA DE LINGOTAMENTO--------------------------------------------------------------------------------------
+BD = 'D:/Agrupamento LG/seq_ling.txt'
+seqling <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
+head(seqling)
+
+#CARREGA PADCST SGF-----------------------------------------------------------------------------------------------------
+BD = 'D:/Agrupamento LG/pad_sgf.txt'
+pad_sfg <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
+head(pad_sfg)
+
+#Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
+seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
+seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
+                          ifelse(seqling$SGF==2,'UBC02',
+                                 ifelse(seqling$SGF %in% c(19,20),'UBC',
+                                        ifelse(seqling$SGF==3,'BC03',
+                                               ifelse(seqling$SGF %in% c(9,10,6,27,17,18,30,34),'BC',
+                                                      ifelse(seqling$SGF==31,'Q7',
+                                                             ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
+                                                                    ifelse(seqling$SGF %in% c(38,43),'TRIP','DEMAIS'))))))))
+seqling$SGF<-ifelse(seqling$grupo_aco=='DEMAIS',0,seqling$SGF)
+
+#agregação sgf e lg----------------------------------------------------------------------------------------------------
+sgf_lg<-aggregate(Placao ~  grupo_aco + LGBQ,seqling,FUN=length)
+sgf_lg<-sgf_lg[order(sgf_lg[,'grupo_aco'],sgf_lg[,'LGBQ']),]
+names(sgf_lg)[names(sgf_lg) =='Placao']<-'Peso'
+names(sgf_lg)[names(sgf_lg) =='LGBQ']<-'lg_infln_bq'
+
+#SALVA O ARQUIVO PARA PROCESSAMENTO------------------
+write.table(sgf_lg, file="D:/Agrupamento LG/Geral.txt",row.names=F,sep='\t',dec = ".")
+
+
+#CARREGAMENTO PARA PREPARAR TABELA DO PADRÃO COM LARGURAS DE BQ-----------------------------------------------
+BD = 'D:/Agrupamento LG/otimizado_processado_geral.csv'
+dataset <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
+
+#Grupos dos aços distintos
+sgf_distintos<-unique(dataset$sgf_ini)
+
+df_consolidado<-data.frame(lg_real=0,lgplacao=0,lgmin=0,lgmax=0,sgf=0)
+df_temp<-df_consolidado
+df_consolidado<-df_consolidado[df_consolidado>0,]
+for(aco in sgf_distintos){
+  temp_otimizado<-dataset[dataset[,9]==aco,c(1,2,3,9)]
+
+  for(lg_placao in temp_otimizado[,1]){
+    temp_lgplacao<-temp_otimizado[temp_otimizado[,1]==lg_placao,1]
+    temp_lgmin<-temp_otimizado[temp_otimizado[,1]==lg_placao,2]
+    temp_lgmax<-temp_otimizado[temp_otimizado[,1]==lg_placao,3]
+    temp_sgf<-temp_otimizado[temp_otimizado[,1]==lg_placao,4]
+    
+    for(lg_real in temp_lgmin:temp_lgmax){
+      df_temp$lg_real<-lg_real
+      df_temp$lgplacao<-temp_lgplacao
+      df_temp$lgmin<-temp_lgmin
+      df_temp$lgmax<-temp_lgmax
+      df_temp$sgf<-temp_sgf
+      df_consolidado<-rbind(df_consolidado,df_temp)
+    }
+  }
+}
+write.table(df_consolidado, file="tabela_largura.csv",row.names=FALSE,sep=";")
+
+BD = 'D:/Agrupamento LG/tabela_largura.csv'
+df_consolidado <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
+sgf_distintos<-unique(df_consolidado$sgf)
+
+
+
+#Uniao da tabela da sequencia de lingotamento descasando a linha-----------------------------------------------
+
+#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
+#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
+
+seqling$seqid<-1:NROW(seqling)
+seqling2<-seqling
+seqling2$seqid<-seqling2$seqid-1
+
+#JOIN COM LINHAS DESCASADAS
+seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid")
+
+#GARANTE QUE AS LINHAS SÃO DE FATO CONSECUTIVAS
+seqlingfim<-seqlingfim[seqlingfim[,'Veio.x']==seqlingfim[,'Veio.y'] & 
+                       seqlingfim[,'Cod_seq.x']==seqlingfim[,'Cod_seq.y'] & 
+                       seqlingfim[,'Distr.x']==seqlingfim[,'Distr.y'],]
+
+
+#JOIN DO 1 PADRAO COM SGF
+seqlingfim<- merge(seqlingfim,pad_sfg, by.x = "PdCST.x" , by.y = "cd_pdcst_placa")
+#JOIN DO 2 PADRAO COM SGF
+seqlingfim<- merge(seqlingfim,pad_sfg, by.x = "PdCST.y" , by.y = "cd_pdcst_placa")
+
+
+#uniao do df_consolidado com a sequencia de lingotamento----------------------------------------------------------------
+
+df_consolidado$chave<-paste0(df_consolidado$sgf,';',df_consolidado$lg_real)
+seqlingfim$chave1<-paste0(seqlingfim$SGF.x,';',seqlingfim$LGBQ.x)
+seqlingfim$chave2<-paste0(seqlingfim$SGF.y,';',seqlingfim$LGBQ.y)
+
+#JOIN DO 1 PADRAO COM df_consolidado
+seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
+
+#JOIN DO 2 PADRAO COM df_consolidado
+seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
+
+
+#seqlingfim[seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
+#seqlingfim<-seqlingfim[seqlingfim[,'sgf.x']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa.x==seqlingfim$lg_infln_placa.y,]
+
+
+sum(seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y)
+sum(seqlingfim$lg_infln_placa.x!=seqlingfim$lg_infln_placa.y)
+
+mean(abs(seqlingfim$lgplacao.x-seqlingfim$lgplacao.y))
+mean(abs(seqlingfim$lg_infln_placa.x-seqlingfim$lg_infln_placa.y))
+
+mean(seqlingfim$lgplacao.x)
+mean(seqlingfim$lg_infln_placa.x)
+str(seqlingfim)
+
+campos<-c('DT.ling..x','Placao.x','Placao.y','PdCST.x','PdCST.y','SGF.x','SGF.y','lg_infln_placa.x','lg_infln_placa.y','lgplacao.x','lgplacao.y','LGBQ.x','LGBQ.y')
+
+
+write.table(seqlingfim[,campos], file="seq_simulado4.csv",row.names=FALSE,sep=";")
+
+
