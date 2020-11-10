@@ -11,6 +11,7 @@ library(dplyr)
 BD = 'D:/Agrupamento LG/seq_ling.txt'
 seqling <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
 seqling$seqid<-1:NROW(seqling)
+head(seqling)
 
 #CARREGA PADCST SGF-----------------------------------------------------------------------------------------------------
 BD = 'D:/Agrupamento LG/pad_sgf.txt'
@@ -19,14 +20,31 @@ head(pad_sfg)
 
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
-seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
-                          ifelse(seqling$SGF==2,'UBC02',
-                                 ifelse(seqling$SGF %in% c(19,20),'UBC',
-                                        ifelse(seqling$SGF==3,'BC03',
-                                               ifelse(seqling$SGF %in% c(9,10,6,27,17,18,30,34),'BC',
-                                                      ifelse(seqling$SGF==31,'Q7',
-                                                             ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
-                                                                    ifelse(seqling$SGF %in% c(38,43),'TRIP','DEMAIS'))))))))
+
+proposta_agrupamento<-'NLTQ'
+
+if(proposta_agrupamento=='LTQ'){
+  seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
+                            ifelse(seqling$SGF==2,'UBC02',
+                                   ifelse(seqling$SGF %in% c(19,20),'UBC',
+                                          ifelse(seqling$SGF==3,'BC03',
+                                                 ifelse(seqling$SGF %in% c(9,10,6,27,17,18,30,34),'BC',
+                                                        ifelse(seqling$SGF==31,'Q7',
+                                                               ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
+                                                                      ifelse(seqling$SGF %in% c(38,43),'TRIP','DEMAIS'))))))))
+}else{
+  seqling$grupo_aco<-ifelse(seqling$cd_facc %in% c(10,11),'UBC',
+                            ifelse(seqling$cd_facc %in% c(20,23),'BC',
+                                  ifelse(seqling$SGF==31,'Q7',
+                                        ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
+                                              ifelse(seqling$SGF %in% c(38,43),'TRIP','DEMAIS')))))
+
+  seqling$SGF<-ifelse(seqling$grupo_aco=='UBC',19,seqling$SGF)  
+  seqling$SGF<-ifelse(seqling$grupo_aco=='BC',10,seqling$SGF)  
+}
+
+
+
 seqling$SGF<-ifelse(seqling$grupo_aco=='DEMAIS',0,seqling$SGF)
 
 #agregação sgf e lg----------------------------------------------------------------------------------------------------
@@ -34,6 +52,16 @@ sgf_lg<-aggregate(Placao ~  grupo_aco + LGBQ,seqling,FUN=length)
 sgf_lg<-sgf_lg[order(sgf_lg[,'grupo_aco'],sgf_lg[,'LGBQ']),]
 names(sgf_lg)[names(sgf_lg) =='Placao']<-'Peso'
 names(sgf_lg)[names(sgf_lg) =='LGBQ']<-'lg_infln_bq'
+
+#coloca o volume do BC também nos demais, melhorando o resultado de troca de distribuidor
+# if(proposta_agrupamento!='LTQ'){
+#   temp<-sgf_lg 
+#   temp$grupo_aco<-ifelse(temp$grupo_aco=='BC','DEMAIS',temp$grupo_aco)
+#   temp<-aggregate(Peso ~  grupo_aco + lg_infln_bq,temp,FUN=sum)
+#   sgf_lg<-rbind(sgf_lg[sgf_lg$grupo_aco!='DEMAIS',],temp[temp$grupo_aco=='DEMAIS',])  
+# }
+
+
 
 #SALVA O ARQUIVO PARA PROCESSAMENTO------------------
 write.table(sgf_lg, file="D:/Agrupamento LG/Geral.txt",row.names=F,sep='\t',dec = ".")
@@ -95,6 +123,8 @@ head(df_consolidado)
 
 seqlingfim$chave1<-paste0(seqlingfim$SGF,';',seqlingfim$LGBQ)
 seqlingfim$chave2<-paste0(seqlingfim$SGF_post,';',seqlingfim$LGBQ_post)
+seqlingfim$id_mix<-ifelse(seqlingfim$PdCST!=seqlingfim$PdCST_post,1,0)
+seqlingfim$id_TD<-ifelse(seqlingfim$SeqCorr!=seqlingfim$SeqCorr_post,1,0)
 head(seqlingfim)
 
 #JOIN DO 1 PADRAO COM df_consolidado
@@ -104,22 +134,59 @@ seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
 seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
 
 
-sum(seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y)
-sum(seqlingfim$lg_infln_placa!=seqlingfim$lg_infln_placa_post)
+resultados<-seqlingfim#seqlingfim[grepl('DEMAIS',seqlingfim[,'grupo_aco']),]
 
-mean(abs(seqlingfim$lgplacao.x-seqlingfim$lgplacao.y))
-mean(abs(seqlingfim$lg_infln_placa-seqlingfim$lg_infln_placa_post))
+sum(resultados$lgplacao.x!=resultados$lgplacao.y)
+sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
 
-mean(seqlingfim$lgplacao.x)
-mean(seqlingfim$lg_infln_placa)
+mean(abs(resultados$lgplacao.x-resultados$lgplacao.y))
+mean(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post))
+
+mean(ifelse(abs(resultados$lgplacao.x-resultados$lgplacao.y)<=40,1,0))
+mean(ifelse(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post)<=40,1,0))
+
+mean(resultados$lgplacao.x)
+mean(resultados$lg_infln_placa)
 
 
-#pad_sfg$SGF<-ifelse(pad_sfg$SGF %in% setdiff(sgf_distintos,0),pad_sfg$SGF,0 )
-#seqling<-seqling[grepl("10/2020|11/2020",seqling[,'DT.ling.']),]
+
+vetor<-resultados$lgplacao.x!=resultados$lgplacao.y
+vetor<-resultados$lgplacao.x!=resultados$lgplacao.y & resultados$lg_infln_placa==resultados$lg_infln_placa_post
+
+vetor<-resultados$grupo_aco=='UBC'
 
 
-campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post')
+campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD')
+analise<-resultados[vetor,campos]
+TOTAL<-NROW(resultados)
+
+TEMP<-aggregate(Placao ~  grupo_aco + grupo_aco_post,analise,FUN=length)
+TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
+TEMP<-TEMP[order(-TEMP[,3]),]
+print(TEMP)
+print(sum(TEMP[,3]))
+
+TEMP<-aggregate(Placao ~  cd_facc + cd_facc_post,analise,FUN=length)
+TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
+TEMP<-TEMP[order(-TEMP[,3]),]
+print(TEMP)
+print(sum(TEMP[,3]))
+
+TEMP<-aggregate(id_mix ~  grupo_aco + grupo_aco_post,analise,FUN=sum)
+TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
+TEMP<-TEMP[order(-TEMP[,3]),]
+print(TEMP)
+print(sum(TEMP[,3]))
+
+TEMP<-aggregate(id_TD ~  grupo_aco + grupo_aco_post,analise,FUN=sum)
+TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
+TEMP<-TEMP[order(-TEMP[,3]),]
+print(TEMP)
+print(sum(TEMP[,3]))
+
+
+
 #Verificar as diferenças entre o padrão e a proposta
-write.table(seqlingfim[seqlingfim[,'SGF']>0 & seqlingfim$lgplacao.x!=seqlingfim$lgplacao.y & seqlingfim$lg_infln_placa==seqlingfim$lg_infln_placa_post,campos], file="seq_simulado4.csv",row.names=FALSE,sep=";")
+write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
 
 
