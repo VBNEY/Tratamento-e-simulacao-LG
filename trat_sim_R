@@ -169,6 +169,8 @@ for(aco in c(ACOS,'GERAL')){
   df_resumo<-rbind(df_resumo,df_resumo_temp)
   df_resumo<-df_resumo[df_resumo[,2]>0,]
 }
+write.table(df_resumo, file="D:/Agrupamento LG/resumo_simulacao_ltq.csv",row.names=F,sep=';',dec = ".")
+
 
 #Filtros de análise------------------
 vetor<-seqlingfim$lgplacao.x>0
