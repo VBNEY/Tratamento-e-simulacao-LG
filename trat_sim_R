@@ -142,7 +142,7 @@ ACOS<-unique(seqlingfim[,'grupo_aco'])
 campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD')
 
 
-df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,reducao_sim=0.0,reducao_real=0.0,stringsAsFactors = F)
+df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLvarsim_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,reducao_sim=0.0,reducao_real=0.0,stringsAsFactors = F)
 if(exists("df_resumo_temp")){rm("df_resumo_temp")}
 for(aco in c(ACOS,'GERAL')){
   if(aco!='GERAL'){
@@ -155,6 +155,7 @@ for(aco in c(ACOS,'GERAL')){
   
   ML_simulado<-sum(resultados$lgplacao.x!=resultados$lgplacao.y)
   ML_real<-sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
+  MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,2)
   
   reducao_sim<-round(mean(abs(resultados$lgplacao.x-resultados$LGBQ)),2)
   reducao_real<-round(mean(abs(resultados$lg_infln_placa-resultados$LGBQ)),2)
@@ -165,11 +166,11 @@ for(aco in c(ACOS,'GERAL')){
   avg_simulado<-round(mean(resultados$lgplacao.x),2)
   avg_real<-round(mean(resultados$lg_infln_placa),2)
   
-  df_resumo_temp<-data.frame(aco=aco,ML_simulado=ML_simulado,ML_real=ML_real,MLmenor40simul=MLmenor40simul,MLmenor40real=MLmenor40real,avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,stringsAsFactors = F)
+  df_resumo_temp<-data.frame(aco=aco,ML_simulado=ML_simulado,ML_real=ML_real,MLvarsim_real=MLvarsim_real,MLmenor40simul=MLmenor40simul,MLmenor40real=MLmenor40real,avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,stringsAsFactors = F)
   df_resumo<-rbind(df_resumo,df_resumo_temp)
   df_resumo<-df_resumo[df_resumo[,2]>0,]
 }
-write.table(df_resumo, file="D:/Agrupamento LG/resumo_simulacao_ltq.csv",row.names=F,sep=';',dec = ".")
+write.table(df_resumo, file="D:/Agrupamento LG/resumo_simulacao_ltq.csv",row.names=F,sep=';',dec = ",")
 
 
 #Filtros de análise------------------
