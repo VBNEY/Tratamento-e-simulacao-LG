@@ -21,7 +21,7 @@ head(pad_sfg)
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
 
-proposta_agrupamento<-'NLTQ'
+proposta_agrupamento<-'LTQ'
 
 if(proposta_agrupamento=='LTQ'){
   seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
@@ -44,7 +44,8 @@ if(proposta_agrupamento=='LTQ'){
 }
 
 
-
+unique(seqling$SGF)
+unique(seqling$grupo_aco)
 seqling$SGF<-ifelse(seqling$grupo_aco=='DEMAIS',0,seqling$SGF)
 
 #agregação sgf e lg----------------------------------------------------------------------------------------------------
@@ -85,6 +86,8 @@ seqlingfim<-seqlingfim[seqlingfim[,'Veio']==seqlingfim[,'Veio_post'] &
 BD = 'D:/Agrupamento LG/otimizado_processado_geral.csv'
 dataset <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
 
+head(dataset)
+
 #Grupos dos aços distintos
 sgf_distintos<-unique(dataset$sgf_ini)
 
@@ -110,7 +113,7 @@ for(aco in sgf_distintos){
     }
   }
 }
-write.table(df_consolidado, file="tabela_largura.csv",row.names=FALSE,sep=";")
+write.table(df_consolidado, file="D:/Agrupamento LG/tabela_largura.csv",row.names=FALSE,sep=";")
 
 BD = 'D:/Agrupamento LG/tabela_largura.csv'
 df_consolidado <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
@@ -134,7 +137,21 @@ seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
 seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
 
 
-resultados<-seqlingfim#seqlingfim[grepl('DEMAIS',seqlingfim[,'grupo_aco']),]
+resultados<-seqlingfim
+head(seqlingfim)
+unique(seqlingfim[,'grupo_aco'])
+
+
+#Filtros de análise------------------
+vetor<-resultados$lgplacao.x>0
+vetor<-resultados$lgplacao.x!=resultados$lgplacao.y
+vetor<-resultados$lgplacao.x!=resultados$lgplacao.y & resultados$lg_infln_placa==resultados$lg_infln_placa_post
+vetor<-grepl('Q7',resultados[,'grupo_aco'])
+#Filtros de análise------------------
+
+campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD')
+resultados<-seqlingfim[vetor,campos]
+TOTAL<-NROW(resultados)
 
 sum(resultados$lgplacao.x!=resultados$lgplacao.y)
 sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
@@ -150,35 +167,25 @@ mean(resultados$lg_infln_placa)
 
 
 
-vetor<-resultados$lgplacao.x!=resultados$lgplacao.y
-vetor<-resultados$lgplacao.x!=resultados$lgplacao.y & resultados$lg_infln_placa==resultados$lg_infln_placa_post
-
-vetor<-resultados$grupo_aco=='UBC'
-
-
-campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD')
-analise<-resultados[vetor,campos]
-TOTAL<-NROW(resultados)
-
-TEMP<-aggregate(Placao ~  grupo_aco + grupo_aco_post,analise,FUN=length)
+TEMP<-aggregate(Placao ~  grupo_aco + grupo_aco_post,resultados,FUN=length)
 TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
 TEMP<-TEMP[order(-TEMP[,3]),]
 print(TEMP)
 print(sum(TEMP[,3]))
 
-TEMP<-aggregate(Placao ~  cd_facc + cd_facc_post,analise,FUN=length)
+TEMP<-aggregate(Placao ~  cd_facc + cd_facc_post,resultados,FUN=length)
 TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
 TEMP<-TEMP[order(-TEMP[,3]),]
 print(TEMP)
 print(sum(TEMP[,3]))
 
-TEMP<-aggregate(id_mix ~  grupo_aco + grupo_aco_post,analise,FUN=sum)
+TEMP<-aggregate(id_mix ~  grupo_aco + grupo_aco_post,resultados,FUN=sum)
 TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
 TEMP<-TEMP[order(-TEMP[,3]),]
 print(TEMP)
 print(sum(TEMP[,3]))
 
-TEMP<-aggregate(id_TD ~  grupo_aco + grupo_aco_post,analise,FUN=sum)
+TEMP<-aggregate(id_TD ~  grupo_aco + grupo_aco_post,resultados,FUN=sum)
 TEMP[,3]<-round(TEMP[,3]/TOTAL,3)
 TEMP<-TEMP[order(-TEMP[,3]),]
 print(TEMP)
