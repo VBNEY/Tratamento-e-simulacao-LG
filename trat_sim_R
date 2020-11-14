@@ -22,7 +22,7 @@ head(pad_sfg)
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
 
-proposta_agrupamento<-'nLTQ'
+proposta_agrupamento<-'LTQ'
 
 if(proposta_agrupamento=='LTQ'){
   seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
@@ -221,13 +221,16 @@ if(exists("df_redmax")){rm("df_redmax")}
 ################################
 ################################
 ################################
-      #Loop do Gridsearch
+reducao_grid_loop<-0
+Aumentar_media_loop<-1
+Aumentar_red_loop<-0
 
-for(reducao_grid_loop in c(16,18,20,22)){#
+#Loop do Gridsearch
+for(reducao_grid_loop in c(-2,0,2)){#
   print(reducao_grid_loop)
   for(Aumentar_media_loop in c(0,1)){
     print(Aumentar_media_loop)
-    for(Aumentar_red_loop in c(-10,-5,0)){#
+    for(Aumentar_red_loop in c(-5,0,5)){#
       print(Aumentar_red_loop)
 ################################
 ################################
@@ -240,29 +243,29 @@ for(reducao_grid_loop in c(16,18,20,22)){#
 if(proposta_agrupamento=='LTQ'){
   #aumentar_lg_media<-1 busca também subir a largura média da placa.
   
-  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =85,Red_max_fx2 =75,Red_max_fx3 =85,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =85,Red_max_fx2 =75,Red_max_fx3 =85,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =85,Red_max_fx2 =85,Red_max_fx3 =85,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =75,Red_max_fx2 =75,Red_max_fx3 =75,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =75,Red_max_fx2 =62,Red_max_fx3 =75,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =75,Red_max_fx2 =75,Red_max_fx3 =75,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =75,Red_max_fx2 =75,Red_max_fx3 =75,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =62,Red_max_fx2 =62,Red_max_fx3 =62,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =85+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC01,df_UBC02,df_UBC,df_BC,df_BC03,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
 }else{
   
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =reducao_grid_loop,Red_min_fx2 =16,Red_min_fx3 =16,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =reducao_grid_loop,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =reducao_grid_loop,Red_min_fx2 =16,Red_min_fx3 =16,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =reducao_grid_loop,Red_min_fx2 =16,Red_min_fx3 =16,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =reducao_grid_loop,Red_min_fx2 =18,Red_min_fx3 =18,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=1,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
 }
-
+print(proposta_agrupamento)
 
 #Essa verificação é para debug, evitando entrar no loop para checar os valores
 #df_redmax<-df_redmax[df_redmax[,'Arquivo']=='Q7',]
@@ -318,6 +321,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   
   if(exists("output")){rm("output")}
   for (l in NROW(tabela_lg):1){
+    
     #acumula o peso das faixas de pedidos na linha da largura de cada placao 
     #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
     for (i in NROW(tabela_lg):1){
@@ -325,13 +329,10 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
       tabela_lg[i,'peso_acumulado_max_fx2']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx2'] ,'peso_inicial'])
       tabela_lg[i,'peso_acumulado_max_fx3']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx3'] & tabela_lg[,'lg_ped_min']>=lg_fx2 ,'peso_inicial'])
       tabela_lg[i,'peso_acumulado_max']<-max(c(tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'peso_acumulado_max_fx3']))
-      
       tabela_lg[i,'lg_ped_max']<-ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'lg_ped_max_fx1'],
                                         ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2'],tabela_lg[i,'lg_ped_max_fx3']))
-      
       tabela_lg[i,'lg_placao']<-ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'lg_ped_max_fx1']+red_min_1+incerteza,
-                                       ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2']+red_min_2+incerteza,tabela_lg[i,'lg_ped_max_fx3']+red_min_3+incerteza))
-    }
+                                       ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2']+red_min_2+incerteza,tabela_lg[i,'lg_ped_max_fx3']+red_min_3+incerteza))}
     
     #acha o valor que maximiza o volume
     peso_acumulado_max <- max(tabela_lg[,'peso_acumulado_max'],na.rm=TRUE)
@@ -578,7 +579,7 @@ for(aco in c(ACOS,'GERAL')){
   
   ML_simulado<-sum(resultados$lgplacao.x!=resultados$lgplacao.y)
   ML_real<-sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
-  MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,2)
+  MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,3)
   
   reducao_sim<-round(mean(abs(resultados$lgplacao.x-resultados$LGBQ)),2)
   reducao_real<-round(mean(abs(resultados$lg_infln_placa-resultados$LGBQ)),2)
@@ -666,5 +667,3 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
-
