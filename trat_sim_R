@@ -227,17 +227,31 @@ Aumentar_red_loop<-0
 tol_agrup<-1
 fx_add<-0
 
+passo_loop<-0
 #Loop do Gridsearch
-for(reducao_grid_loop in c(-2,0,2)){#
+reducao_grid_loops<-c(-2,0,2)
+for(reducao_grid_loop in reducao_grid_loops){#
   print(reducao_grid_loop)
-  for(Aumentar_media_loop in c(0,1)){
+  
+  Aumentar_media_loops<-c(0,1)
+  for(Aumentar_media_loop in Aumentar_media_loops){
     print(Aumentar_media_loop)
-    for(Aumentar_red_loop in c(-2,-1,0,1,2)){#
+    
+    Aumentar_red_loops<-c(-2,-1,0,1,2)
+    for(Aumentar_red_loop in Aumentar_red_loops){#
       print(Aumentar_red_loop)
-      for(tol_agrup in c(0,1)){
+      
+      tol_agrups<-c(0,1)
+      for(tol_agrup in tol_agrups){
         print(tol_agrup)
-        for(fx_add in c(-10,0,10)){
+        
+        fx_adds<-c(-10,0,10)
+        for(fx_add in fx_adds){
           print(fx_add)
+
+passo_loop<-passo_loop+1
+qtde_combinacoes<-length(reducao_grid_loops)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(tol_agrups)*length(fx_adds)
+print(paste0(passo_loop,' de ',qtde_combinacoes))
 ################################
 ################################
 ################################
@@ -611,7 +625,7 @@ if(file.exists(arquivo_nome)){
   tables<-read.table(file = arquivo_nome, header = TRUE, sep=';',dec = ",", stringsAsFactors = FALSE)
   tables<-rbind(tables,df_resumo)}
 if(!exists("tables")){tables<-df_resumo}
-tables<-tables[order(tables$aco),]
+tables<-tables[order(tables$aco,tables$MLvarsim_real),]
 write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
 
 
@@ -675,3 +689,5 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
+
+
