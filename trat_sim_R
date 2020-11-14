@@ -221,6 +221,7 @@ if(exists("df_redmax")){rm("df_redmax")}
 ################################
 ################################
 ################################
+dtini<-Sys.time()
 reducao_grid_loop<-0
 Aumentar_media_loop<-1
 Aumentar_red_loop<-0
@@ -252,6 +253,8 @@ for(reducao_grid_loop in reducao_grid_loops){#
 passo_loop<-passo_loop+1
 qtde_combinacoes<-length(reducao_grid_loops)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(tol_agrups)*length(fx_adds)
 print(paste0(passo_loop,' de ',qtde_combinacoes))
+print(Sys.time())
+
 ################################
 ################################
 ################################
@@ -638,6 +641,8 @@ write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
     }
   }
 }
+dtfim<-Sys.time()
+intervalo<-paste0(dtini,' ~ ',dtfim)
 #Loop do Gridsearch linha 192
 ################################
 ################################
