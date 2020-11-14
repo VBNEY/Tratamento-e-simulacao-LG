@@ -675,5 +675,3 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
-
