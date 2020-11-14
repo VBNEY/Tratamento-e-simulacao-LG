@@ -224,6 +224,8 @@ if(exists("df_redmax")){rm("df_redmax")}
 reducao_grid_loop<-0
 Aumentar_media_loop<-1
 Aumentar_red_loop<-0
+tol_agrup<-1
+fx_add<-0
 
 #Loop do Gridsearch
 for(reducao_grid_loop in c(-2,0,2)){#
@@ -234,6 +236,8 @@ for(reducao_grid_loop in c(-2,0,2)){#
       print(Aumentar_red_loop)
       for(tol_agrup in c(0,1)){
         print(tol_agrup)
+        for(fx_add in c(-10,0,10)){
+          print(fx_add)
 ################################
 ################################
 ################################
@@ -245,25 +249,25 @@ for(reducao_grid_loop in c(-2,0,2)){#
 if(proposta_agrupamento=='LTQ'){
   #aumentar_lg_media<-1 busca também subir a largura média da placa.
   
-  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =85+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =85+Aumentar_red_loop,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC01,df_UBC02,df_UBC,df_BC,df_BC03,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
 }else{
   
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1729,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1580,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490,Lg_tran2=1490,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+reducao_grid_loop,Red_min_fx2 =12+reducao_grid_loop,Red_min_fx3 =12+reducao_grid_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+reducao_grid_loop,Red_min_fx2 =18+reducao_grid_loop,Red_min_fx3 =18+reducao_grid_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
 }
@@ -615,6 +619,7 @@ write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
 ################################
 ################################
 ################################
+        }
       }
     }
   }
