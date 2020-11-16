@@ -122,7 +122,7 @@ aco_disponíveis<-unique(tabela_lg$grupo_aco) #importante para garantir que some
 rm("tabela_lg")
 
 library(dplyr)
-ajuste_lg_adjacentes<-function(x){
+ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2){
 
     x<-x[x[,'lg_ped_min']<=x[,'lg_ped_max'],]
     x<-x[order(-x[,'peso_acum']),] 
@@ -144,7 +144,7 @@ ajuste_lg_adjacentes<-function(x){
         lg_pedinf_atual<-x[indice,'lg_ped_min']
         lg_pedmax_atual<-x[indice,'lg_ped_max']
         prior_atual<-x[indice,'prioridade']
-        
+      
         lg_placao_post<-x[indice+1,'lg_placao']
         lg_pedinf_post<-x[indice+1,'lg_ped_min']
         lg_pedmax_post<-x[indice+1,'lg_ped_max']
@@ -158,7 +158,7 @@ ajuste_lg_adjacentes<-function(x){
               lg_pedmax_atual<-lg_pedinf_atual
               x[indice,'lg_ped_max']<-lg_pedmax_atual
             }
-          }
+        }
 
         if(lg_pedmax_atual>=lg_pedinf_post & x[indice,'iduso']==0){
             lg_pedmax_atual<-lg_pedinf_post-1
@@ -167,7 +167,19 @@ ajuste_lg_adjacentes<-function(x){
               lg_pedmax_atual<-lg_pedinf_atual
               x[indice,'lg_ped_max']<-lg_pedmax_atual
             }
-          }
+        }
+        
+        reducao_minina<-red_min2
+        if(lg_pedmax_atual<Lg_tran){reducao_minina<-red_min1}
+        if(lg_pedinf_atual>Lg_tran2){reducao_minina<-red_min3}
+        
+        
+        if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
+          lg_placao_atual<-lg_pedmax_atual+reducao_minina
+          if(lg_placao_atual==lg_placao_post){lg_placao_atual<-lg_placao_post+1}#Não deixar a mesma largura de placao se repetir
+          x[indice,'lg_placao']<-lg_placao_atual
+        }
+        
         x[indice,'iduso']<-1
       }
     }
@@ -351,7 +363,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   tabela_lg<-output
   
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
-  tabela_lg<-ajuste_lg_adjacentes(tabela_lg)
+  tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2)
   
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
   if(exists("output_temp2")){rm("output_temp2")}
@@ -652,3 +664,5 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
+
+
