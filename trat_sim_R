@@ -229,7 +229,7 @@ fx_add<-0
 
 passo_loop<-0
 #Loop do Gridsearch
-redmin_loops<-c(-2,-1,0,1,2)
+redmin_loops<-c(-2,0,2)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
@@ -237,7 +237,7 @@ for(redmin_loop in redmin_loops){#
   for(Aumentar_media_loop in Aumentar_media_loops){
     print(Aumentar_media_loop)
     
-    Aumentar_red_loops<-c(-2,-1,0,1,2)
+    Aumentar_red_loops<-c(-5,0,5)
     for(Aumentar_red_loop in Aumentar_red_loops){#
       print(Aumentar_red_loop)
       
@@ -245,7 +245,7 @@ for(redmin_loop in redmin_loops){#
       for(tol_agrup in tol_agrups){
         print(tol_agrup)
         
-        fx_adds<-c(0)
+        fx_adds<-c(0,10)
         for(fx_add in fx_adds){
           print(fx_add)
 
@@ -575,7 +575,7 @@ ACOS<-unique(seqlingfim[,'grupo_aco'])
 campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD','parametro.x')
 
 
-df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLvarsim_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,reducao_sim=0.0,reducao_real=0.0,N_Lg=0.0,Parametros='',stringsAsFactors = F)
+df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLvarsim_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,reducao_sim=0.0,reducao_real=0.0,N_Lg=0.0,perda_ton_simul=0.0,perda_ton_real=0.0,Parametros='',stringsAsFactors = F)
 if(exists("df_resumo_temp")){rm("df_resumo_temp")}
 for(aco in c(ACOS,'GERAL')){
   if(aco!='GERAL'){
@@ -597,6 +597,9 @@ for(aco in c(ACOS,'GERAL')){
   ML_real<-sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
   MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,3)
   
+  perda_corte_simul<-round(sum(abs(resultados$lgplacao.x/1000-resultados$lgplacao.y/1000)/(resultados$lgplacao.x/1000)*10*0.225*7.83),2)
+  perda_corte_real<-round(sum(abs(resultados$lg_infln_placa/1000-resultados$lg_infln_placa_post/1000)/(resultados$lg_infln_placa/1000)*10*0.225*7.83),2)
+  
   reducao_sim<-round(mean(abs(resultados$lgplacao.x-resultados$LGBQ)),2)
   reducao_real<-round(mean(abs(resultados$lg_infln_placa-resultados$LGBQ)),2)
   
@@ -609,7 +612,7 @@ for(aco in c(ACOS,'GERAL')){
   avg_real<-round(mean(resultados$lg_infln_placa),2)
   
   df_resumo_temp<-data.frame(aco=aco,ML_simulado=ML_simulado,ML_real=ML_real,MLvarsim_real=MLvarsim_real,MLmenor40simul=MLmenor40simul,MLmenor40real=MLmenor40real,
-                             avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,N_Lg=npl_dist,
+                             avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,N_Lg=npl_dist,perda_ton_simul=perda_corte_simul,perda_ton_real=perda_corte_real,
                              Parametros=parametro,stringsAsFactors = F)
   df_resumo<-rbind(df_resumo,df_resumo_temp)
   df_resumo<-df_resumo[df_resumo[,2]>0,]
