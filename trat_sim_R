@@ -122,94 +122,56 @@ aco_disponíveis<-unique(tabela_lg$grupo_aco) #importante para garantir que some
 rm("tabela_lg")
 
 library(dplyr)
-ajuste_lg_adjacentes<-function(x,incerteza,lg_fx,lg_fx2,fx1,fx2,fx3,red_min_1,red_min_2,red_min_3,TAPER=40){
-  
-  #cria o indice que sera usado para localizar as adjacentes
-  x$id<-as.integer(seq.int(nrow(x)))
-  x$prioritario<-0
-  
-  #o loop tem que ser pela prioridade!!!	
-  for (i in NROW(x):1){
-    
-    #acha o indice da prioridade em questao, começando pela última prioridade
-    #A última prioridade cede largura para faixas mais prioritárias
-    indice<-x[x[,5]==i,6]
-    
-    #garante que não é nem o primeiro e nem a última linha
-    if(indice>1 & indice<NROW(x)){
+ajuste_lg_adjacentes<-function(x){
+
+    x<-x[x[,'lg_ped_min']<=x[,'lg_ped_max'],]
+    x<-x[order(-x[,'peso_acum']),] 
+    x$prioridade <- seq.int(nrow(x))
+    x<-x[order(x[,'lg_placao'],x[,'lg_ped_min']),]
+    x$iduso<-0
+
+    for (i in NROW(x):1){
       
-      lg_min1 <-x[indice,2]
-      lg_min2 <-x[indice+1,2]		
-      lg_max0 <-x[indice-1,3]
-      lg_max1 <-x[indice,3]
-      peso_anterior<-x[indice-1,4]
-      peso_atual<-x[indice,4]
-      peso_posterior<-x[indice+1,4]
-      
-      lg_placao_ant<-x[indice-1,1]
-      lg_placao_post<-x[indice+1,1]
-      lg_placao<-x[indice,1]
-      
-      #ao começar da última prioridade para a primeira, pode-se estreitar a faixa
-      if(x[indice,'prioritario']==0){
-        lg_min1<-lg_max0+1
-        lg_max1<-lg_min2-1
+      indice<-which(x[,'prioridade']==i)
+      if(indice>1 & indice<NROW(x)){
         
-        #ajuste da largura do placao menos prioritário, buscando deixar taper <=40mm
-        if(peso_anterior>peso_posterior){
-          x[indice,1]<-lg_max1+red_min_1}
+        lg_placao_ant<-x[indice-1,'lg_placao']
+        lg_pedinf_ant<-x[indice-1,'lg_ped_min']
+        lg_pedmax_ant<-x[indice-1,'lg_ped_max']
+        prior_ant<-x[indice-1,'prioridade']
         
-      }
-      
-      #O código abaixo foi comentado para que o loop do código principal possa limpar as faixas desnecessárias
-      #com lg forçado, muitas vezes acontece a distorção da largura inf ficar maior que a superior
-      #if(lg_min1>lg_max1){lg_min1<-lg_max1}
-      
-      if(x[indice,2]<=x[indice-1,3]){
-        x[indice-1,'prioritario']<-1
-        x[indice,2]<-lg_min1
-      }
-      
-      if(x[indice,3]>=x[indice+1,2]){
-        x[indice+1,'prioritario']<-1
-        x[indice,3]<-lg_max1
-      }
-      
-    }
-    
-    
-    if(indice==1){
-      lg_pos_min <-x[indice+1,2]
-      lg_atual_max <-x[indice,3]
-      peso_atual<-x[indice,4]
-      peso_posterior<-x[indice+1,4]
-      if(peso_atual<=peso_posterior){
-        lg_atual_max<-lg_pos_min-1
-        x[indice,3]<-lg_atual_max
-      }else{
-        lg_pos_min<-lg_atual_max+1
-        x[indice+1,2]<-lg_pos_min
-      }
-    }
-    
-    if(indice==NROW(x)){
-      lg_ant_max <-x[indice-1,3]
-      lg_atual_min <-x[indice,2]
-      peso_atual<-x[indice,4]
-      peso_anterior<-x[indice-1,4]
-      if(peso_atual<=peso_anterior){
-        lg_atual_min<-lg_ant_max+1
-        x[indice,2]<-lg_atual_min
-      }else{
-        lg_ant_max<-lg_atual_min-1
-        x[indice-1,3]<-lg_ant_max
+        lg_placao_atual<-x[indice,'lg_placao']
+        lg_pedinf_atual<-x[indice,'lg_ped_min']
+        lg_pedmax_atual<-x[indice,'lg_ped_max']
+        prior_atual<-x[indice,'prioridade']
+        
+        lg_placao_post<-x[indice+1,'lg_placao']
+        lg_pedinf_post<-x[indice+1,'lg_ped_min']
+        lg_pedmax_post<-x[indice+1,'lg_ped_max']
+        prior_post<-x[indice+1,'prioridade']
+        
+
+        if(lg_pedmax_ant>=lg_pedinf_atual & x[indice,'iduso']==0){
+            lg_pedinf_atual<-lg_pedmax_ant+1
+            x[indice,'lg_ped_min']<-lg_pedinf_atual
+            if(lg_pedinf_atual>lg_pedmax_atual){
+              lg_pedmax_atual<-lg_pedinf_atual
+              x[indice,'lg_ped_max']<-lg_pedmax_atual
+            }
+          }
+
+        if(lg_pedmax_atual>=lg_pedinf_post & x[indice,'iduso']==0){
+            lg_pedmax_atual<-lg_pedinf_post-1
+            x[indice,'lg_ped_max']<-lg_pedmax_atual
+            if(lg_pedinf_atual>lg_pedmax_atual){
+              lg_pedmax_atual<-lg_pedinf_atual
+              x[indice,'lg_ped_max']<-lg_pedmax_atual
+            }
+          }
+        x[indice,'iduso']<-1
       }
     }
-    
-    
-    
-  }
-  x[,'prioritario']<-NULL
+  x$iduso<-NULL
   return(x)
 }
 simular0_gerarpadrao1<-0 #gerar padrao por SGF ltq ou grupo de aco para simulacao
@@ -222,14 +184,14 @@ if(exists("df_redmax")){rm("df_redmax")}
 ################################
 dtini<-Sys.time()
 redmin_loop<-0
-Aumentar_media_loop<-0
 Aumentar_red_loop<-0
-tol_agrup<-1
+Aumentar_media_loop<-1
+tol_agrup<-0
 fx_add<-0
 
 passo_loop<-0
 #Loop do Gridsearch
-redmin_loops<-c(-2,0,2)
+redmin_loops<-c(-2,-1,0)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
@@ -237,7 +199,7 @@ for(redmin_loop in redmin_loops){#
   for(Aumentar_media_loop in Aumentar_media_loops){
     print(Aumentar_media_loop)
     
-    Aumentar_red_loops<-c(-5,0,5)
+    Aumentar_red_loops<-c(0,5)
     for(Aumentar_red_loop in Aumentar_red_loops){#
       print(Aumentar_red_loop)
       
@@ -245,7 +207,7 @@ for(redmin_loop in redmin_loops){#
       for(tol_agrup in tol_agrups){
         print(tol_agrup)
         
-        fx_adds<-c(0,10)
+        fx_adds<-c(0)
         for(fx_add in fx_adds){
           print(fx_add)
 
@@ -290,16 +252,16 @@ if(proposta_agrupamento=='LTQ'){
 print(proposta_agrupamento)
 
 #Essa verificação é para debug, evitando entrar no loop para checar os valores
-#df_redmax<-df_redmax[df_redmax[,'Arquivo']=='UBC',]
-#ifile<-'BC'
+#df_redmax<-df_redmax[df_redmax[,'Arquivo']=='BC',]
+#ifile<-'BC03'
 
 #chave final desse for está no final do script
 for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){ 
   print(ifile)
   texto<-''
   df_parametros<-df_redmax[,c('Arquivo','Red_min_fx1','Lg_tran','Lg_tran2','Red_max_fx1','Red_max_fx2','Red_max_fx3','Aumentar_media','Tol_agrup')]
-  for(nomecolunas in names(df_parametros)) texto<-paste0(texto,' ',nomecolunas,'=',df_parametros[df_parametros$Arquivo==ifile,nomecolunas],'|')
-  texto<-paste0(texto,'Prop Agrup: ',proposta_agrupamento)
+  for(nomecolunas in names(df_parametros)) texto<-paste0(texto,nomecolunas,'=',df_parametros[df_parametros$Arquivo==ifile,nomecolunas],';')
+  texto<-paste0(texto,'Proposta ',proposta_agrupamento)
 
   
   dir <-'d:/Agrupamento LG/'
@@ -386,35 +348,29 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
       if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
     }else{break()}
   }
+  tabela_lg<-output
   
-  #cria uma coluna para indicar a priorização das larguras mais importantes por volume associado
-  tabela_lg<-output[order(-output[,'peso_acum']),] 
-  tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
-  tabela_lg<-tabela_lg[order(tabela_lg[,'lg_placao'],tabela_lg[,'lg_ped_min']),]
-  #write.table(tabela_lg, file="D:/Agrupamento LG/tabela_lg2.csv",row.names=F,sep=';',dec = ".")
+  #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
+  tabela_lg<-ajuste_lg_adjacentes(tabela_lg)
   
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
   if(exists("output_temp2")){rm("output_temp2")}
-  for(achar_vazio in 1:(NROW(output)-1)){#caso existam vazios entre linhas adjacentes
+  for(achar_vazio in 1:(NROW(tabela_lg)-1)){#caso existam vazios entre linhas adjacentes
     if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){
-      output_temp<- data.frame(lg_placao=tabela_lg[achar_vazio,3]+1+fx2-(incerteza+red_min_2),lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=1,prioridade=NROW(tabela_lg))
+      lg_placao_temp<-tabela_lg[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
+      output_temp<- data.frame(lg_placao=ifelse(lg_placao_temp>=tabela_lg[achar_vazio+1,3],tabela_lg[achar_vazio+1,3]-1,lg_placao_temp),lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=1,prioridade=NROW(tabela_lg)+1)
       if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
   
   if(exists("output_temp2")){
     tabela_lg<-rbind(tabela_lg,output_temp2)}
-  #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
-
-  #Ordenação para coerencia  
-  tabela_lg<-output[order(-output[,'peso_acum']),] 
-  tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
-  tabela_lg<-tabela_lg[order(tabela_lg[,'lg_placao'],tabela_lg[,'lg_ped_min']),]
-
-  #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
-  tabela_lg_temp<-ajuste_lg_adjacentes(tabela_lg,incerteza,lg_fx,lg_fx2,fx1,fx2,fx3,red_min_1,red_min_2,red_min_3,TAPER=IL)
-  tabela_lg[,1:3]<-tabela_lg_temp[,1:3]
   
+  #Ordenação para coerencia  
+  tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
+  tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
+  tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
+
   #depurar
-  #for(achar_vazio in 1:(NROW(output)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio+1,2],'~',tabela_lg[achar_vazio,3]))}}
+  #for(achar_vazio in 1:(NROW(tabela_lg)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio,3],'~',tabela_lg[achar_vazio+1,2]))}}
   
   #parte que otimiza as faixas que possuem pequenas diferenças (tol_agrup_lg)-----------
   for (j in 2:NROW(tabela_lg)){
@@ -433,6 +389,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   
   #Salva o arquivo para leitura
   write.table(tabela_lg, file=paste0(dir,'otimizado_',ifile,'.csv'),row.names=FALSE,sep=";",dec = ".")
+  #write.table(tabela_lg, file=paste0(dir,texto,'.csv'),row.names=FALSE,sep=";",dec = ".")
   
 }# chave do loop do arquivo
 
@@ -467,7 +424,7 @@ if(proposta_agrupamento=='LTQ'){
   }else{
     list_padrao<-list(UBC=ubc[1],BC=bc[1],Q7=q7[1],BS=bs[1],TRIP=trip[1],DEMAIS=demais[1])}
 }
-
+arquivo<-df_redmax[,'Arquivo']
 for (ifile in arquivo){ 
   tabela_lg <- read.table(file=paste0('d:/Agrupamento LG/otimizado_',ifile,'.csv'), header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
   for (sgf in list_padrao[[ifile]]){
@@ -496,7 +453,7 @@ rm(processado_geral)
 
 
 if(length(aco_disponíveis)!=length(df_redmax$Arquivo)){
-  stop("Atenção, nem todas opções esperadas foram processadas.........!!!!!!!!!!!!!!!!!!!!!")}
+  print("Atenção, nem todas opções esperadas foram processadas.........!!!!!!!!!!!!!!!!!!!!!")}
 
 ########################################################################################################################################################################################################################################################
 ########################################################################################################################################################################################################################################################
@@ -565,6 +522,10 @@ seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
 
 #JOIN DO 2 PADRAO COM df_consolidado
 seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
+
+
+#seqlingfim[seqlingfim$grupo_aco=='UBC02',] EXEMPLO 380523305, 141324108
+#seqlingfim[seqlingfim$Placao==141324108,] EXEMPLO 380523305, 141324108
 
 #verificar duplicidade
 #a<-aggregate(PdCST ~ Placao,seqlingfim,FUN=length)
@@ -691,5 +652,3 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
-
