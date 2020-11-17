@@ -22,7 +22,7 @@ head(pad_sfg)
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
 
-proposta_agrupamento<-'nLTQ'
+proposta_agrupamento<-'LTQ'
 
 if(proposta_agrupamento=='LTQ'){
   seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
