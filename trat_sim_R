@@ -122,13 +122,13 @@ aco_disponíveis<-unique(tabela_lg$grupo_aco) #importante para garantir que some
 rm("tabela_lg")
 
 library(dplyr)
-ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2){
-
+ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2,tol_aggr=1){
     x<-x[x[,'lg_ped_min']<=x[,'lg_ped_max'],]
     x<-x[order(-x[,'peso_acum']),] 
     x$prioridade <- seq.int(nrow(x))
-    x<-x[order(x[,'lg_placao'],x[,'lg_ped_min']),]
+    x<-x[order(x[,'lg_ped_min']),]
     x$iduso<-0
+    x$idnull<-0
 
     for (i in NROW(x):1){
       
@@ -156,33 +156,43 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2){
             x[indice,'lg_ped_min']<-lg_pedinf_atual
             if(lg_pedinf_atual>lg_pedmax_atual){
               lg_pedmax_atual<-lg_pedinf_atual
-              x[indice,'lg_ped_max']<-lg_pedmax_atual
-            }
-        }
+              x[indice,'lg_ped_max']<-lg_pedmax_atual}}
 
         if(lg_pedmax_atual>=lg_pedinf_post & x[indice,'iduso']==0){
             lg_pedmax_atual<-lg_pedinf_post-1
             x[indice,'lg_ped_max']<-lg_pedmax_atual
             if(lg_pedinf_atual>lg_pedmax_atual){
               lg_pedmax_atual<-lg_pedinf_atual
-              x[indice,'lg_ped_max']<-lg_pedmax_atual
-            }
-        }
+              x[indice,'lg_ped_max']<-lg_pedmax_atual}}
         
+        #Qual a redução mínima adequada...
         reducao_minina<-red_min2
         if(lg_pedmax_atual<Lg_tran){reducao_minina<-red_min1}
         if(lg_pedinf_atual>Lg_tran2){reducao_minina<-red_min3}
         
-        
         if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
           lg_placao_atual<-lg_pedmax_atual+reducao_minina
           if(lg_placao_atual==lg_placao_post){lg_placao_atual<-lg_placao_post+1}#Não deixar a mesma largura de placao se repetir
-          x[indice,'lg_placao']<-lg_placao_atual
-        }
-        
+          x[indice,'lg_placao']<-lg_placao_atual}
         x[indice,'iduso']<-1
       }
     }
+    
+    #DENTRO DA TOLERANCIA PARA AGRUPAR
+    indices<-which((x[,'lg_ped_max']-x[,'lg_ped_min'])<=tol_aggr)
+    indices<-setdiff(indices,c(1,NROW(x)))
+    for(indice in indices){
+        if(x[indice-1,'peso_acum']>x[indice+1,'peso_acum']){
+          x[indice-1,'lg_placao']<-x[indice-1,'lg_placao']+(x[indice,'lg_ped_max']-x[indice,'lg_ped_min'])+1
+          x[indice-1,'lg_ped_max']<-x[indice,'lg_ped_max']
+        }else{
+          x[indice+1,'lg_ped_min']<-x[indice,'lg_ped_min']
+        }
+        x[indice,'idnull']<-NA
+    }
+    x<-x[complete.cases(x),]
+    x$idnull<-NULL
+  
   x$iduso<-NULL
   return(x)
 }
@@ -265,7 +275,7 @@ print(proposta_agrupamento)
 
 #Essa verificação é para debug, evitando entrar no loop para checar os valores
 #df_redmax<-df_redmax[df_redmax[,'Arquivo']=='BC',]
-#ifile<-'BC03'
+#ifile<-'BC'
 
 #chave final desse for está no final do script
 for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){ 
@@ -301,8 +311,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   red_min_3 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx3'] #(18)
   lg_fx <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran'] #largura de transição para critérios diferentes
   lg_fx2 <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran2'] #largura de transição para critérios diferentes
-  head(tabela_lg)
-  
+
   tabela_lg$lg_ped_max_fx1<-tabela_lg[,'lg_ped_min']+fx1-(incerteza+red_min_1)
   tabela_lg$lg_ped_max_fx2<-tabela_lg[,'lg_ped_min']+fx2-(incerteza+red_min_2)
   tabela_lg$lg_ped_max_fx3<-tabela_lg[,'lg_ped_min']+fx3-(incerteza+red_min_3)
@@ -356,15 +365,16 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
     
     if(sum(tabela_lg[,'peso_inicial'],na.rm = T)>0){
       faixa_post<-faixa_temp
-      output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=sum(tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial2']))
+      output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max)
       if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
     }else{break()}
   }
+  lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
   tabela_lg<-output
   
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
-  tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2)
-  
+  tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_aggr = tol_agrup)
+      
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
   if(exists("output_temp2")){rm("output_temp2")}
   for(achar_vazio in 1:(NROW(tabela_lg)-1)){#caso existam vazios entre linhas adjacentes
@@ -372,27 +382,21 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
       lg_placao_temp<-tabela_lg[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
       output_temp<- data.frame(lg_placao=ifelse(lg_placao_temp>=tabela_lg[achar_vazio+1,3],tabela_lg[achar_vazio+1,3]-1,lg_placao_temp),lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=1,prioridade=NROW(tabela_lg)+1)
       if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
-  
   if(exists("output_temp2")){
     tabela_lg<-rbind(tabela_lg,output_temp2)}
-  
   #Ordenação para coerencia  
   tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
   tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
   tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
+  #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
 
+  #atualiza o peso correto da faixa
+  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}   
+  tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2, tol_aggr = tol_agrup)
+  rm(lgbq,output)
+  
   #depurar
   #for(achar_vazio in 1:(NROW(tabela_lg)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio,3],'~',tabela_lg[achar_vazio+1,2]))}}
-  
-  #parte que otimiza as faixas que possuem pequenas diferenças (tol_agrup_lg)-----------
-  for (j in 2:NROW(tabela_lg)){
-    if((tabela_lg[j,2]-tabela_lg[j-1,2])<=tol_agrup_lg){
-      tabela_lg[j,2]<-tabela_lg[j-1,2]
-      tabela_lg[j,4]<-tabela_lg[j,4]+tabela_lg[j-1,4]
-      tabela_lg[j-1,]<-NA}
-  }
-  tabela_lg<-tabela_lg[complete.cases(tabela_lg),]
-  #parte que otimiza as faixas que possuem pequenas diferenças (tol_agrup_lg)-----------
   
   #Criando campos dos delta minimo e máximo entre lg de placao e pedido
   tabela_lg$lg_placao_pedido_max <-(tabela_lg[,1]-tabela_lg[,2])
@@ -664,5 +668,3 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
-
