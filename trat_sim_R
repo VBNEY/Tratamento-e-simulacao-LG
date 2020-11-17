@@ -374,6 +374,9 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
   tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_aggr = tol_agrup)
+  
+  #atualiza o peso correto da faixa
+  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}  
       
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
   if(exists("output_temp2")){rm("output_temp2")}
@@ -389,10 +392,6 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
   tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
-
-  #atualiza o peso correto da faixa
-  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}   
-  tabela_lg<-ajuste_lg_adjacentes(tabela_lg,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2, tol_aggr = tol_agrup)
   rm(lgbq,output)
   
   #depurar
@@ -668,3 +667,5 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
+
+
