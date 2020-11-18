@@ -22,7 +22,7 @@ head(pad_sfg)
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
 
-proposta_agrupamento<-'LTQ'
+proposta_agrupamento<-'nLTQ'
 
 if(proposta_agrupamento=='LTQ'){
   seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
@@ -72,7 +72,7 @@ seqlingfimbk<-seqlingfim#importante na 535, que precisa zerar os merges
 
 #dataframe que atribui a largura posterior ao aco anterior para testar combinações comuns
 considerar_posterior<-F
-temp_posterior<-seqlingfim[,c('Placao','grupo_aco','LGBQ_post')]
+temp_posterior<-seqlingfim[seqlingfim$grupo_aco==seqlingfim$grupo_aco_post & seqlingfim$lg_infln_placa==seqlingfim$lg_infln_placa_post,c('Placao','grupo_aco','LGBQ_post')]
 names(temp_posterior)[names(temp_posterior) =='LGBQ_post']<-'LGBQ'
 
 
@@ -102,7 +102,6 @@ if(1==2){
 write.table(sgf_lg, file="D:/Agrupamento LG/Geral.txt",row.names=F,sep='\t',dec = ".")
 
 
-
 # TODO: Add comment
 # 
 # Author: n11176
@@ -122,9 +121,11 @@ aco_disponíveis<-unique(tabela_lg$grupo_aco) #importante para garantir que some
 rm("tabela_lg")
 
 library(dplyr)
-ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2,tol_agrup=1){
+ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,red_max3,Lg_tran,Lg_tran2,tol_agrup=1,prioriza_O0_P1=0,IL=40){
   x<-x[x[,'lg_ped_min']<=x[,'lg_ped_max'],]
   x<-x[order(-x[,'peso_acum']),] 
+  if(prioriza_O0_P1==1){
+    x$prioridade <- seq.int(nrow(x))}
   x<-x[order(x[,'lg_ped_min']),]
   x$iduso<-0
   x$idnull<-0
@@ -169,13 +170,27 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2,tol
       if(lg_pedmax_atual<Lg_tran){reducao_minina<-red_min1}
       if(lg_pedinf_atual>Lg_tran2){reducao_minina<-red_min3}
       
+      #Qual a redução máxima adequada...
+      reducao_maxima<-red_max2
+      if(lg_pedmax_atual<Lg_tran){reducao_maxima<-red_max1}
+      if(lg_pedinf_atual>Lg_tran2){reducao_maxima<-red_max3}
+      
       if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
-        if(abs(lg_placao_atual-lg_placao_ant)>40 | abs(lg_placao_post-lg_placao_atual)>40){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
+        if(abs(lg_placao_atual-lg_placao_ant)>IL | abs(lg_placao_post-lg_placao_atual)>IL){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
           lg_placao_atual<-lg_pedmax_atual+reducao_minina
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+2,lg_placao_atual)
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+3,lg_placao_atual)
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+4,lg_placao_atual)
+          x[indice,'lg_placao']<-lg_placao_atual}
+      }
+      else{
+        if(abs(lg_placao_atual-lg_placao_ant)>IL | abs(lg_placao_post-lg_placao_atual)>IL){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
+          lg_placao_atual<-lg_pedinf_atual+reducao_maxima
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-2,lg_placao_atual)
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-3,lg_placao_atual)
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-4,lg_placao_atual)
           x[indice,'lg_placao']<-lg_placao_atual}
       }
       x[indice,'iduso']<-1
@@ -216,7 +231,7 @@ fx_add<-0
 
 passo_loop<-0
 #Loop do Gridsearch
-redmin_loops<-c(0,-1,-2)
+redmin_loops<-c(0)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
@@ -232,12 +247,16 @@ for(redmin_loop in redmin_loops){#
       for(tol_agrup in tol_agrups){
         print(tol_agrup)
         
-        fx_adds<-c(0)
-        for(fx_add in fx_adds){
-          print(fx_add)
+        tipo_priorizacoes<-c(0)
+        for(tipo_priorizacao in tipo_priorizacoes){
+          print(tipo_priorizacao)
+        
+          fx_adds<-c(0)
+          for(fx_add in fx_adds){
+            print(fx_add)
 
 passo_loop<-passo_loop+1
-qtde_combinacoes<-length(redmin_loops)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(tol_agrups)*length(fx_adds)
+qtde_combinacoes<-length(redmin_loops)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(tol_agrups)*length(tipo_priorizacoes)*length(fx_adds)
 print(paste0(passo_loop,' de ',qtde_combinacoes))
 print(Sys.time())
 
@@ -286,7 +305,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   texto<-''
   df_parametros<-df_redmax[,c('Arquivo','Red_min_fx1','Lg_tran','Lg_tran2','Red_max_fx1','Red_max_fx2','Red_max_fx3','Aumentar_media','Tol_agrup')]
   for(nomecolunas in names(df_parametros)) texto<-paste0(texto,nomecolunas,'=',df_parametros[df_parametros$Arquivo==ifile,nomecolunas],';')
-  texto<-paste0(texto,'Proposta ',proposta_agrupamento)
+  texto<-paste0(texto,'Proposta ',proposta_agrupamento,'; Priorizacao ',tipo_priorizacao)
 
   
   dir <-'d:/Agrupamento LG/'
@@ -374,7 +393,9 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
 
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
-  tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_agrup = tol_agrup)
+  tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,
+                                  red_max1=(fx1-incerteza),red_max2=(fx2-incerteza),red_max3=(fx3-incerteza),
+                                  Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_agrup = tol_agrup,prioriza_O0_P1=tipo_priorizacao,IL=40)
   
   #atualiza o peso correto da faixa
   for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}  
@@ -610,6 +631,7 @@ write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
 ################################
 ################################
 ################################
+          }
         }
       }
     }
