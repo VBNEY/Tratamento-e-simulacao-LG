@@ -22,7 +22,7 @@ head(pad_sfg)
 #Uniao para agrupamento de larguras e SGF------------------------------------------------------------------------------
 seqling<-merge(seqling,pad_sfg,by.x = 'PdCST',by.y = 'cd_pdcst_placa')
 
-proposta_agrupamento<-'NLTQ'
+proposta_agrupamento<-'LTQ'
 
 if(proposta_agrupamento=='LTQ'){
   seqling$grupo_aco<-ifelse(seqling$SGF==1,'UBC01',
@@ -125,7 +125,6 @@ library(dplyr)
 ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2,tol_agrup=1){
   x<-x[x[,'lg_ped_min']<=x[,'lg_ped_max'],]
   x<-x[order(-x[,'peso_acum']),] 
-  x$prioridade <- seq.int(nrow(x))
   x<-x[order(x[,'lg_ped_min']),]
   x$iduso<-0
   x$idnull<-0
@@ -171,12 +170,14 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,Lg_tran,Lg_tran2,tol
       if(lg_pedinf_atual>Lg_tran2){reducao_minina<-red_min3}
       
       if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
-        lg_placao_atual<-lg_pedmax_atual+reducao_minina
-        lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
-        lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+2,lg_placao_atual)
-        lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+3,lg_placao_atual)
-        lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+4,lg_placao_atual)
-        x[indice,'lg_placao']<-lg_placao_atual}
+        if(abs(lg_placao_atual-lg_placao_ant)>40 | abs(lg_placao_post-lg_placao_atual)>40){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
+          lg_placao_atual<-lg_pedmax_atual+reducao_minina
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+2,lg_placao_atual)
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+3,lg_placao_atual)
+          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+4,lg_placao_atual)
+          x[indice,'lg_placao']<-lg_placao_atual}
+      }
       x[indice,'iduso']<-1
     }
   }
@@ -215,7 +216,7 @@ fx_add<-0
 
 passo_loop<-0
 #Loop do Gridsearch
-redmin_loops<-c(0)
+redmin_loops<-c(0,-1,-2)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
@@ -329,8 +330,8 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   
   
   if(exists("output")){rm("output")}
-  faixa_post<-''
-  for (l in NROW(tabela_lg):1){
+  prioridade<-1
+  for (l in 1:NROW(tabela_lg)){
     
     #acumula o peso das faixas de pedidos na linha da largura de cada placao 
     #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
@@ -363,12 +364,11 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
     faixa_temp<-paste0(lg_min_pedido_temp,'~',lg_max_pedido_temp)
     
     #limpa o peso de faixas já usadas
-    tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial']<- 0 
-    
+    tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial']<-0
     if(sum(tabela_lg[,'peso_inicial'],na.rm = T)>0){
-      faixa_post<-faixa_temp
-      output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max)
+      output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max,prioridade=prioridade)
       if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
+      prioridade<-prioridade+1
     }else{break()}
   }
   lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
@@ -385,7 +385,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
     if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){
       lg_placao_temp<-tabela_lg[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
       lg_placao_temp<-ifelse(lg_placao_temp==tabela_lg[achar_vazio+1,'lg_placao'],tabela_lg[achar_vazio+1,'lg_placao']-1,ifelse(lg_placao_temp==tabela_lg[achar_vazio-1,'lg_placao'],tabela_lg[achar_vazio-1,'lg_placao']+1,lg_placao_temp))
-      output_temp<- data.frame(lg_placao=lg_placao_temp,lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=1,prioridade=NROW(tabela_lg)+1)
+      output_temp<- data.frame(lg_placao=lg_placao_temp,lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=0.01,prioridade=NROW(tabela_lg)+1)
       if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
   if(exists("output_temp2")){
     tabela_lg<-rbind(tabela_lg,output_temp2)}
