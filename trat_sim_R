@@ -72,12 +72,16 @@ seqlingfimbk<-seqlingfim#importante na 535, que precisa zerar os merges
 
 #dataframe que atribui a largura posterior ao aco anterior para testar combinações comuns
 considerar_posterior<-F
-temp_posterior<-seqlingfim[seqlingfim$grupo_aco==seqlingfim$grupo_aco_post & seqlingfim$lg_infln_placa==seqlingfim$lg_infln_placa_post,c('Placao','grupo_aco','LGBQ_post')]
+temp_posterior<-seqlingfim[seqlingfim$grupo_aco=='UBC' & seqlingfim$grupo_aco==seqlingfim$grupo_aco_post &
+                          abs(seqlingfim$LGBQ-seqlingfim$LGBQ_post)>0 & abs(seqlingfim$LGBQ-seqlingfim$LGBQ_post)<=40 &
+                          seqlingfim$lg_infln_placa == seqlingfim$lg_infln_placa_post,c('Placao','grupo_aco','LGBQ_post')]
 names(temp_posterior)[names(temp_posterior) =='LGBQ_post']<-'LGBQ'
 
 
 #agregação sgf e lg----------------------------------------------------------------------------------------------------
 if(considerar_posterior==T){
+  for(i in 1:1){
+    temp_posterior<-rbind(temp_posterior,temp_posterior)}
   temp_aggregado<-rbind(temp_posterior,seqling[,c('Placao','grupo_aco','LGBQ')])
 }else{
   temp_aggregado<-seqling}
@@ -195,10 +199,11 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
             lg_placao_atual<-lg_temp_medio
           }else{
             lg_placao_atual<-lg_pedinf_atual+reducao_maxima}
-          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
-          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-2,lg_placao_atual)
-          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-3,lg_placao_atual)
-          lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-4,lg_placao_atual)
+          
+          lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
+          lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-2,lg_placao_atual)
+          lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-3,lg_placao_atual)
+          lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-4,lg_placao_atual)
           x[indice,'lg_placao']<-lg_placao_atual}
       }
       x[indice,'iduso']<-1
@@ -209,8 +214,8 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
   indices<-which((x[,'lg_ped_max']-x[,'lg_ped_min'])<=(tol_agrup-1))
   indices<-setdiff(indices,c(1,NROW(x)))
   for(indice in indices){
-    if(x[indice-1,'peso_acum']>x[indice+1,'peso_acum']){
-      x[indice-1,'lg_placao']<-x[indice-1,'lg_placao']+(x[indice,'lg_ped_max']-x[indice,'lg_ped_min'])+1
+    if(x[indice-1,'peso_acum']<x[indice+1,'peso_acum']){#incorpora a faixa estreita na largura de menor volume
+      x[indice-1,'lg_placao']<-x[indice-1,'lg_placao']+(x[indice,'lg_ped_max']-x[indice,'lg_ped_min'])
       x[indice-1,'lg_ped_max']<-x[indice,'lg_ped_max']
     }else{
       x[indice+1,'lg_ped_min']<-x[indice,'lg_ped_min']
@@ -246,7 +251,7 @@ if(exists("df_redmax")){rm("df_redmax")}
 dtini<-Sys.time()
 redmin_loop<-0
 Aumentar_red_loop<-0
-Aumentar_media_loop<-1
+Aumentar_media_loop<-0
 tol_agrup<-0
 fx_add<-0
 tipo_priorizacao<-0
@@ -257,7 +262,7 @@ redmin_loops<-c(0)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
-  Aumentar_media_loops<-c(0,1)
+  Aumentar_media_loops<-c(1)
   for(Aumentar_media_loop in Aumentar_media_loops){
     print(Aumentar_media_loop)
     
@@ -308,18 +313,18 @@ if(proposta_agrupamento=='LTQ'){
   
   df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =16+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =16+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =16+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
 }
 print(proposta_agrupamento)
 
 #Essa verificação é para debug, evitando entrar no loop para checar os valores
-#df_redmax<-df_redmax[df_redmax[,'Arquivo']=='BC',]
-#ifile<-'BC'
+#df_redmax<-df_redmax[df_redmax[,'Arquivo']=='UBC',]
+#ifile<-'UBC'
 
 #chave final desse for está no final do script
 for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){ 
@@ -682,7 +687,7 @@ print(TEMP)
 print(sum(TEMP[,3]))
 
 TEMP<-aggregate(Placao ~  cd_facc + cd_facc_post + LGBQ + LGBQ_post + lgplacao.x + lgplacao.y + lg_infln_placa + lg_infln_placa_post,resultados,FUN=length)
-#TEMP<-TEMP[TEMP$cd_facc==10,]
+TEMP<-TEMP[TEMP$cd_facc==10,]
 TEMP[,ncol(TEMP)]<-TEMP[,ncol(TEMP)]
 TEMP<-TEMP[order(-TEMP[,ncol(TEMP)]),]
 print(TEMP)
