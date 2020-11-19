@@ -177,7 +177,11 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
       
       if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
         if(abs(lg_placao_atual-lg_placao_ant)>IL | abs(lg_placao_post-lg_placao_atual)>IL){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
-          lg_placao_atual<-lg_pedmax_atual+reducao_minina
+          lg_temp_medio<-round((lg_placao_ant+lg_placao_post)/2,0)
+          if((lg_placao_post-lg_temp_medio)<=IL & (lg_temp_medio-lg_placao_ant)<=IL & lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima)){
+            lg_placao_atual<-lg_temp_medio
+          }else{
+            lg_placao_atual<-lg_pedmax_atual+reducao_minina}
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+2,lg_placao_atual)
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual+3,lg_placao_atual)
@@ -186,7 +190,11 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
       }
       else{
         if(abs(lg_placao_atual-lg_placao_ant)>IL | abs(lg_placao_post-lg_placao_atual)>IL){#se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
-          lg_placao_atual<-lg_pedinf_atual+reducao_maxima
+          lg_temp_medio<-round((lg_placao_ant+lg_placao_post)/2,0)
+          if((lg_placao_post-lg_temp_medio)<=IL & (lg_temp_medio-lg_placao_ant)<=IL & lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima)){
+            lg_placao_atual<-lg_temp_medio
+          }else{
+            lg_placao_atual<-lg_pedinf_atual+reducao_maxima}
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-2,lg_placao_atual)
           lg_placao_atual<-ifelse(lg_placao_atual %in% x[,'lg_placao'],lg_placao_atual-3,lg_placao_atual)
@@ -212,6 +220,19 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
   x<-x[complete.cases(x),]
   x$idnull<-NULL
   x$iduso<-NULL
+  
+  #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
+  for(achar_vazio in 1:(NROW(x)-1)){#caso existam vazios entre linhas adjacentes
+    if((x[achar_vazio+1,2]-x[achar_vazio,3])>1){
+      lg_placao_temp<-x[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
+      lg_placao_temp<-ifelse(lg_placao_temp==x[achar_vazio+1,'lg_placao'],x[achar_vazio+1,'lg_placao']-1,ifelse(lg_placao_temp==x[achar_vazio-1,'lg_placao'],x[achar_vazio-1,'lg_placao']+1,lg_placao_temp))
+      output_temp<- data.frame(lg_placao=lg_placao_temp,lg_ped_min=x[achar_vazio,3]+1,lg_ped_max=x[achar_vazio+1,2]-1,peso_acum=0.01,prioridade=NROW(x)+1)
+      if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
+  if(exists("output_temp2")){x<-rbind(x,output_temp2)}
+  #Ordenação para coerencia  
+  x<-x[order(-x[,'peso_acum']),] 
+  x$prioridade <- seq.int(nrow(x))
+  x<-x[order(x[,'lg_ped_min']),]
   return(x)
 }
 simular0_gerarpadrao1<-0 #gerar padrao por SGF ltq ou grupo de aco para simulacao
@@ -228,6 +249,7 @@ Aumentar_red_loop<-0
 Aumentar_media_loop<-1
 tol_agrup<-0
 fx_add<-0
+tipo_priorizacao<-0
 
 passo_loop<-0
 #Loop do Gridsearch
@@ -243,7 +265,7 @@ for(redmin_loop in redmin_loops){#
     for(Aumentar_red_loop in Aumentar_red_loops){#
       print(Aumentar_red_loop)
       
-      tol_agrups<-c(0,1)
+      tol_agrups<-c(1)
       for(tol_agrup in tol_agrups){
         print(tol_agrup)
         
@@ -288,7 +310,7 @@ if(proposta_agrupamento=='LTQ'){
   df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+redmin_loop,Red_min_fx2 =12+redmin_loop,Red_min_fx3 =12+redmin_loop,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loop,Red_min_fx3 =18+redmin_loop,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
   df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
   
@@ -392,30 +414,22 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   }
   lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
 
+  
+  #aqui as faixas são ajustadas...
+  for(nloop in 1:10){
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
   tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,
                                   red_max1=(fx1-incerteza),red_max2=(fx2-incerteza),red_max3=(fx3-incerteza),
                                   Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_agrup = tol_agrup,prioriza_O0_P1=tipo_priorizacao,IL=40)
-  
   #atualiza o peso correto da faixa
-  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}  
-      
-  #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
-  if(exists("output_temp2")){rm("output_temp2")}
-  for(achar_vazio in 1:(NROW(tabela_lg)-1)){#caso existam vazios entre linhas adjacentes
-    if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){
-      lg_placao_temp<-tabela_lg[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
-      lg_placao_temp<-ifelse(lg_placao_temp==tabela_lg[achar_vazio+1,'lg_placao'],tabela_lg[achar_vazio+1,'lg_placao']-1,ifelse(lg_placao_temp==tabela_lg[achar_vazio-1,'lg_placao'],tabela_lg[achar_vazio-1,'lg_placao']+1,lg_placao_temp))
-      output_temp<- data.frame(lg_placao=lg_placao_temp,lg_ped_min=tabela_lg[achar_vazio,3]+1,lg_ped_max=tabela_lg[achar_vazio+1,2]-1,peso_acum=0.01,prioridade=NROW(tabela_lg)+1)
-      if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
-  if(exists("output_temp2")){
-    tabela_lg<-rbind(tabela_lg,output_temp2)}
-  #Ordenação para coerencia  
+  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}
+  #atualiza a prioridade
   tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
   tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
   tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
-  #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
-  rm(lgbq,output)
+  }
+  #aqui as faixas são ajustadas...
+  
   
   #depurar
   #for(achar_vazio in 1:(NROW(tabela_lg)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio,3],'~',tabela_lg[achar_vazio+1,2]))}}
