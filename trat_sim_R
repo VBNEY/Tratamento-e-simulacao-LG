@@ -185,7 +185,7 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
           lgfxmin<-lg_pedinf_atual+reducao_minina
           lgfxmax<-lg_pedinf_atual+reducao_maxima
           lg_temp_medio<-lg_pedmax_atual+reducao_minina
-          for(lg_temp in lgfxmin:lgfxmax){
+          for(lg_temp in lgfxmax:lgfxmin){
             if((lg_temp-lg_placao_ant)<=IL & (lg_placao_post-lg_temp)<=IL){
               lg_temp_medio<-lg_temp
             }
