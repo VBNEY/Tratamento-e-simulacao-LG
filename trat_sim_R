@@ -34,7 +34,7 @@ if(proposta_agrupamento=='LTQ'){
                                                                ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
                                                                       ifelse(seqling$SGF %in% c(38,43),'TRIP','DEMAIS'))))))))
 }else{
-  seqling$grupo_aco<-ifelse(seqling$SGF %in% c(1,2,19,20),'UBC',
+  seqling$grupo_aco<-ifelse(seqling$cd_facc %in% c(10,11),'UBC',
                             ifelse(seqling$SGF %in% c(3,9,10,6,27,17,18,30,34),'BC',
                                    ifelse(seqling$SGF==31,'Q7',
                                           ifelse(seqling$SGF %in% c(41,07,29,14,33,13),'BS',
@@ -62,27 +62,24 @@ for (nome in names(seqling2)){names(seqling2)[names(seqling2) ==nome]<-paste0(no
 
 #JOIN COM LINHAS DESCASADAS
 seqlingfim<- merge(seqling,seqling2, by.x = "seqid" , by.y = "seqid_post")
-str(seqlingfim)
+rm(seqling2)
 
-#GARANTE QUE AS LINHAS SÃO DE FATO CONSECUTIVAS
+#GARANTE QUE AS LINHAS SÃO AS CONSECUTIVAS QUE INTERESSAM
 seqlingfim<-seqlingfim[seqlingfim[,'Veio']==seqlingfim[,'Veio_post'] & 
-                         seqlingfim[,'Cod_seq']==seqlingfim[,'Cod_seq_post'],]
+                       seqlingfim[,'Cod_seq']==seqlingfim[,'Cod_seq_post'],]
 
 seqlingfimbk<-seqlingfim#importante na 535, que precisa zerar os merges
 
 #dataframe que atribui a largura posterior ao aco anterior para testar combinações comuns
 considerar_posterior<-F
-temp_posterior<-seqlingfim[seqlingfim$grupo_aco=='UBC' & seqlingfim$grupo_aco==seqlingfim$grupo_aco_post &
-                          abs(seqlingfim$LGBQ-seqlingfim$LGBQ_post)>0 & abs(seqlingfim$LGBQ-seqlingfim$LGBQ_post)<=40 &
-                          seqlingfim$lg_infln_placa == seqlingfim$lg_infln_placa_post,c('Placao','grupo_aco','LGBQ_post')]
-names(temp_posterior)[names(temp_posterior) =='LGBQ_post']<-'LGBQ'
 
 
 #agregação sgf e lg----------------------------------------------------------------------------------------------------
 if(considerar_posterior==T){
-  for(i in 1:1){
-    temp_posterior<-rbind(temp_posterior,temp_posterior)}
-  temp_aggregado<-rbind(temp_posterior,seqling[,c('Placao','grupo_aco','LGBQ')])
+  temp_posterior<-seqlingfim[,c('Placao','grupo_aco','LGBQ_post')]
+  names(temp_posterior)[names(temp_posterior) =='LGBQ_post']<-'LGBQ'
+  temp_aggregado<-rbind(temp_posterior[abs(temp_posterior$LGBQ-temp_posterior$LGBQ_post)>0 ,c('Placao','grupo_aco','LGBQ')],seqling[abs(seqlingfim$LGBQ-seqlingfim$LGBQ_post)>0,c('Placao','grupo_aco','LGBQ')])
+  temp_aggregado<-unique(temp_aggregado)
 }else{
   temp_aggregado<-seqling}
 
@@ -262,15 +259,17 @@ if(exists("df_redmax")){rm("df_redmax")}
 ################################
 dtini<-Sys.time()
 redmin_loop<-0
-Aumentar_red_loop<-0
+redmin_loopfx2<-0
 Aumentar_media_loop<-0
-tol_agrup<-0
-fx_add<-0
+Aumentar_red_loop<-0
+Aumentar_red_loop_fx2<-0
 tipo_priorizacao<-0
+fx_add<-0
+tol_agrup<-1
 
 passo_loop<-0
 #Loop do Gridsearch
-redmin_loops<-c(-2,0)
+redmin_loops<-c(0,-2)
 for(redmin_loop in redmin_loops){#
   print(redmin_loop)
   
@@ -286,7 +285,7 @@ for(redmin_loop in redmin_loops){#
       for(Aumentar_red_loop in Aumentar_red_loops){#
         print(Aumentar_red_loop)
         
-        Aumentar_red_loops_fx2<-c(0,10)
+        Aumentar_red_loops_fx2<-c(0)
         for(Aumentar_red_loop_fx2 in Aumentar_red_loops_fx2){#
           print(Aumentar_red_loop_fx2)
         
@@ -294,7 +293,7 @@ for(redmin_loop in redmin_loops){#
           for(tol_agrup in tol_agrups){
             print(tol_agrup)
             
-            tipo_priorizacoes<-c(0,1)
+            tipo_priorizacoes<-c(0)
             for(tipo_priorizacao in tipo_priorizacoes){
               print(tipo_priorizacao)
             
@@ -442,7 +441,6 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
 
   
   #aqui as faixas são ajustadas...
-  for(nloop in 1:10){
   #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
   tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,
                                   red_max1=(fx1-incerteza),red_max2=(fx2-incerteza),red_max3=(fx3-incerteza),
@@ -453,8 +451,7 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
   tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
   tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
-  }
-  #aqui as faixas são ajustadas...
+
   
   
   #depurar
@@ -733,3 +730,5 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
+
+
