@@ -398,7 +398,8 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
   
   if(exists("output")){rm("output")}
   prioridade<-1
-  for (l in NROW(tabela_lg):1){
+  peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
+  while (peso_temp>0){
     
     #acumula o peso das faixas de pedidos na linha da largura de cada placao 
     #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
@@ -433,11 +434,11 @@ for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){
     #limpa o peso de faixas já usadas
     peso_acumulado_geral<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_original'])
     tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial']<-0
-    if(sum(tabela_lg[,'peso_inicial'],na.rm = T)>0){
-      output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max,peso_acum_geral=peso_acumulado_geral,prioridade=prioridade)
-      if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
-      prioridade<-prioridade+1
-    }else{break()}
+    peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
+    
+    output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max,peso_acum_geral=peso_acumulado_geral,prioridade=prioridade)
+    if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
+    prioridade<-prioridade+1
   }
   lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
 
@@ -737,5 +738,4 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
 
