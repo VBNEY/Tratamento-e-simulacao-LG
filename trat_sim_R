@@ -16,6 +16,7 @@ Aumentar_red_loop_fx2<-0
 tipo_priorizacao<-0
 fx_add<-0
 tol_agrup<-1
+add_mm_to_lg_targe_ltq<-7
 
 
 
@@ -76,7 +77,7 @@ rm(seqling2)
 
 #GARANTE QUE AS LINHAS SÃO AS CONSECUTIVAS QUE INTERESSAM
 seqlingfim<-seqlingfim[seqlingfim[,'Veio']==seqlingfim[,'Veio_post'] & 
-                       seqlingfim[,'Cod_seq']==seqlingfim[,'Cod_seq_post'],]
+                         seqlingfim[,'Cod_seq']==seqlingfim[,'Cod_seq_post'],]
 
 seqlingfimbk<-seqlingfim#importante na 535, que precisa zerar os merges
 
@@ -199,7 +200,7 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
         }
         if((lg_placao_post-lg_temp_medio)<=IL & (lg_temp_medio-lg_placao_ant)<=IL & lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima)){
           lg_placao_atual<-lg_temp_medio}
-          
+        
         lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
         lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+2,lg_placao_atual)
         lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+3,lg_placao_atual)
@@ -207,7 +208,7 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
         x[indice,'lg_placao']<-lg_placao_atual
       }
       else{
-         #se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
+        #se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
         lgfxmin<-lg_pedinf_atual+reducao_minina
         lgfxmax<-lg_pedinf_atual+reducao_maxima
         lg_temp_medio<-lg_pedinf_atual+reducao_maxima
@@ -278,19 +279,19 @@ for(redmin_loop in redmin_loops){#
   redmin_loopsfx2<-c(0)
   for(redmin_loopfx2 in redmin_loopsfx2){#
     print(redmin_loopfx2)
-  
+    
     Aumentar_media_loops<-c(0,1)
     for(Aumentar_media_loop in Aumentar_media_loops){
       print(Aumentar_media_loop)
       
-      Aumentar_red_loops<-c(0)
+      Aumentar_red_loops<-c(0,2,3)
       for(Aumentar_red_loop in Aumentar_red_loops){#
         print(Aumentar_red_loop)
         
         Aumentar_red_loops_fx2<-c(0)
         for(Aumentar_red_loop_fx2 in Aumentar_red_loops_fx2){#
           print(Aumentar_red_loop_fx2)
-        
+          
           tol_agrups<-c(0,1)
           for(tol_agrup in tol_agrups){
             print(tol_agrup)
@@ -298,384 +299,385 @@ for(redmin_loop in redmin_loops){#
             tipo_priorizacoes<-c(0)
             for(tipo_priorizacao in tipo_priorizacoes){
               print(tipo_priorizacao)
-            
+              
               fx_adds<-c(0)
               for(fx_add in fx_adds){
                 print(fx_add)
-
-passo_loop<-passo_loop+1
-qtde_combinacoes<-length(redmin_loops)*length(redmin_loopsfx2)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(Aumentar_red_loops_fx2)*length(tol_agrups)*length(tipo_priorizacoes)*length(fx_adds)
-print(paste0(passo_loop,' de ',qtde_combinacoes))
-print(Sys.time())
-
-################################
-################################
-################################
-################################
-
-
-
-#criacao do dataframe com os parâmetros que serão utilizados
-if(proposta_agrupamento=='LTQ'){
-  #aumentar_lg_media<-1 busca também subir a largura média da placa.
-  
-  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =85+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+redmin_loop,Red_min_fx2 =12+redmin_loopfx2,Red_min_fx3 =12+redmin_loopfx2,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop_fx2,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
-  df_redmax<-rbind(df_UBC01,df_UBC02,df_UBC,df_BC,df_BC03,df_Q7,df_BS,df_TRIP,df_DEMAIS)
-  
-}else{
-  
-  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
-  df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
-  
-}
-print(proposta_agrupamento)
-
-#Essa verificação é para debug, evitando entrar no loop para checar os valores
-#df_redmax<-df_redmax[df_redmax[,'Arquivo']=='UBC',]
-#ifile<-'UBC'
-
-#chave final desse for está no final do script
-for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){ 
-  print(ifile)
-  texto<-''
-  df_parametros<-df_redmax[,c('Arquivo','Red_min_fx1','Red_min_fx2','Lg_tran','Lg_tran2','Red_max_fx1','Red_max_fx2','Red_max_fx3','Aumentar_media','Tol_agrup')]
-  for(nomecolunas in names(df_parametros)) texto<-paste0(texto,nomecolunas,'=',df_parametros[df_parametros$Arquivo==ifile,nomecolunas],';')
-  texto<-paste0(texto,'Proposta ',proposta_agrupamento,'; Priorizacao ',tipo_priorizacao)
-
-  
-  dir <-'d:/Agrupamento LG/'
-  BD = paste0(dir,'geral.txt') 
-  tabela_lg <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
-  tabela_lg<-tabela_lg[tabela_lg[,1]==ifile,c('lg_infln_bq','Peso')]
-  tabela_lg<-data.frame(lapply(tabela_lg, function(x) as.numeric(gsub(",",".",gsub(" ","", x)))))
-  
-  lg_ped_min <- as.numeric(749+seq(1:(1881-750)))
-  peso_inicial <- as.numeric(rep_len(0.001, 1881-750))
-  dataframe_inicial <- data.frame(lg_ped_min,peso_inicial)
-  tabela_lg<- left_join(dataframe_inicial, tabela_lg, by = c("lg_ped_min" = "lg_infln_bq"))
-  tabela_lg[,2]<-tabela_lg[,2]+ifelse(is.na(tabela_lg[,3]), 0, tabela_lg[,3])
-  tabela_lg[,3]<-NULL
-  
-  aumentar_lg_media<-df_redmax[df_redmax$Arquivo==ifile,'Aumentar_media']
-  IL<-df_redmax[df_redmax$Arquivo==ifile,'IL']
-  tol_agrup_lg<-df_redmax[df_redmax$Arquivo==ifile,'Tol_agrup']
-  incerteza <-df_redmax[df_redmax$Arquivo==ifile,'Incerteza']
-  fx1 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx1']#(85-12=73)
-  fx2 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx2']#(85-12=73)
-  fx3 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx3']#(85-12=73)
-  red_min_1 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx1'] #(18)
-  red_min_2 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx2'] #(18)
-  red_min_3 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx3'] #(18)
-  lg_fx <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran'] #largura de transição para critérios diferentes
-  lg_fx2 <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran2'] #largura de transição para critérios diferentes
-
-  tabela_lg$lg_ped_max_fx1<-tabela_lg[,'lg_ped_min']+fx1-(incerteza+red_min_1)
-  tabela_lg$lg_ped_max_fx2<-tabela_lg[,'lg_ped_min']+fx2-(incerteza+red_min_2)
-  tabela_lg$lg_ped_max_fx3<-tabela_lg[,'lg_ped_min']+fx3-(incerteza+red_min_3)
-  
-  tabela_lg[,2]<-tabela_lg[,2]*(1+aumentar_lg_media*tabela_lg[,1]) #tabela_lg[,2]=Qtde de placao * #tabela_lg[,'lg_placao']=Largura do placao, seria quase uma unidade de peso
-  tabela_lg$peso_acumulado_max<-0
-  tabela_lg$peso_original<-tabela_lg[,2]
-  tabela_lg$peso_acum_proc<-0
-  tabela_lg$peso_inicial2<-tabela_lg$peso_inicial
-  
-  tabbk<-tabela_lg
-  #tabela_lg<-tabbk
-  
-  
-  if(exists("output")){rm("output")}
-  prioridade<-1
-  peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
-  while (peso_temp>0){
-    
-    #acumula o peso das faixas de pedidos na linha da largura de cada placao 
-    #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
-    for (i in NROW(tabela_lg):1){
-      if(lg_fx!=lg_fx2){#otimiza velocidade de execução
-        tabela_lg[i,'peso_acumulado_max_fx1']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'] & tabela_lg[,'lg_ped_max_fx1']<=lg_fx,'peso_inicial'])
-        tabela_lg[i,'peso_acumulado_max_fx2']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx2'] ,'peso_inicial'])
-        tabela_lg[i,'peso_acumulado_max_fx3']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx3'] & tabela_lg[,'lg_ped_min']>=lg_fx2 ,'peso_inicial'])
-        tabela_lg[i,'peso_acumulado_max']<-max(c(tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'peso_acumulado_max_fx3']))
-        tabela_lg[i,'lg_ped_max']<-ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'lg_ped_max_fx1'],
-                                          ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2'],tabela_lg[i,'lg_ped_max_fx3']))
-        tabela_lg[i,'lg_placao']<-tabela_lg[i,'lg_ped_max']+ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],red_min_1,
-                                         ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],red_min_2,red_min_3))
-      }else{
-        tabela_lg[i,'peso_acumulado_max']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'],'peso_inicial'])
-        tabela_lg[i,'lg_ped_max']<-tabela_lg[i,'lg_ped_max_fx1']
-        tabela_lg[i,'lg_placao']<-tabela_lg[i,'lg_ped_max_fx1']+red_min_1
-      }
-    }
-    #tabela_lg[tabela_lg[,'peso_acumulado_max']==max(tabela_lg[,'peso_acumulado_max']),] depuracao
-    
-    #acha o valor que maximiza o volume
-    peso_acumulado_max <- max(tabela_lg[,'peso_acumulado_max'],na.rm=TRUE)
-    lg_max <- min(tabela_lg[tabela_lg['peso_acumulado_max']==peso_acumulado_max,'lg_placao'],na.rm=TRUE)
-    
-    #pega a maior e menor largura de pedido para o maior peso acumulado
-    lg_min_pedido_temp <- min(tabela_lg[tabela_lg[,'lg_placao']==lg_max,'lg_ped_min'],na.rm=TRUE)
-    lg_max_pedido_temp <- max(tabela_lg[tabela_lg[,'lg_placao']==lg_max,'lg_ped_max'],na.rm=TRUE)
-    
-    faixa_temp<-paste0(lg_min_pedido_temp,'~',lg_max_pedido_temp)
-    
-    #limpa o peso de faixas já usadas
-    peso_acumulado_geral<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_original'])
-    tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial']<-0
-    peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
-    
-    output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max,peso_acum_geral=peso_acumulado_geral,prioridade=prioridade)
-    if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
-    prioridade<-prioridade+1
-  }
-  lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
-
-  
-  #aqui as faixas são ajustadas...
-  #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
-  tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,
-                                  red_max1=(fx1-incerteza),red_max2=(fx2-incerteza),red_max3=(fx3-incerteza),
-                                  Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_agrup = tol_agrup,prioriza_O0_P1=tipo_priorizacao,IL=40)
-  #atualiza o peso correto da faixa
-  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}
-  #atualiza a prioridade
-  tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
-  tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
-  tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
-
-  
-  
-  #depurar
-  #for(achar_vazio in 1:(NROW(tabela_lg)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio,3],'~',tabela_lg[achar_vazio+1,2]))}}
-  
-  #Criando campos dos delta minimo e máximo entre lg de placao e pedido
-  tabela_lg$lg_placao_pedido_max <-(tabela_lg[,1]-tabela_lg[,2])
-  tabela_lg$lg_placao_pedido_min <-(tabela_lg[,1]-tabela_lg[,3])
-  tabela_lg$parametros<-texto
-  
-  #Salva o arquivo para leitura
-  write.table(tabela_lg, file=paste0(dir,'otimizado_',ifile,'.csv'),row.names=FALSE,sep=";",dec = ".")
-  #write.table(tabela_lg, file=paste0(dir,texto,'.csv'),row.names=FALSE,sep=";",dec = ".")
-  
-}# chave do loop do arquivo
-
-
-#ajustar para o preenchimento do padrao---------------------------------
-if(proposta_agrupamento=='LTQ'){
-  arquivo <- c('UBC01','UBC02','UBC','BC','BC03','Q7','BS','TRIP','DEMAIS')
-  ubc<-c(19,20)
-  ubc01<-c(01)
-  ubc02<-c(02)
-  bc<-c(09,10,06,27,17,18,30,34)
-  bc03<-c(03)
-  q7<-c(31)
-  bs<-c(41,07,29,14,33,13)
-  trip<-c(38,43)
-  demais<-c(00)
-  if(simular0_gerarpadrao1==1){
-    list_padrao<-list(UBC=ubc,UBC01=ubc01,UBC02=ubc02,BC=bc,BC03=bc03,Q7=q7,BS=bs,TRIP=trip,DEMAIS=demais)  
-  }else{
-    list_padrao<-list(UBC=ubc[1],UBC01=ubc01[1],UBC02=ubc02[1],BC=bc[1],BC03=bc03[1],Q7=q7[1],BS=bs[1],TRIP=trip[1],DEMAIS=demais[1])}
-  
-}else{
-  arquivo <- c('UBC','BC','Q7','BS','TRIP','DEMAIS')
-  ubc<-c(19,20,01,02)
-  bc<-c(09,10,06,27,17,18,30,34,03)
-  q7<-c(31)
-  bs<-c(41,07,29,14,33,13)
-  trip<-c(38,43)
-  demais<-c(00)
-  if(simular0_gerarpadrao1==1){
-    list_padrao<-list(UBC=ubc,BC=bc,Q7=q7,BS=bs,TRIP=trip,DEMAIS=demais)
-  }else{
-    list_padrao<-list(UBC=ubc[1],BC=bc[1],Q7=q7[1],BS=bs[1],TRIP=trip[1],DEMAIS=demais[1])}
-}
-arquivo<-df_redmax[,'Arquivo']
-for (ifile in arquivo){ 
-  tabela_lg <- read.table(file=paste0('d:/Agrupamento LG/otimizado_',ifile,'.csv'), header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
-  for (sgf in list_padrao[[ifile]]){
-    tabela_lg_temp<-tabela_lg
-    tabela_lg_temp$sgf_ini<-sgf
-    tabela_lg_temp$sgf_fim<-sgf
-    tabela_lg_temp$esppl_ini<-215
-    tabela_lg_temp$esppl_fim<-239
-
-    tabela_lg_temp$aco<-ifile
-    if(!exists("tabela_lgfinal")){
-      tabela_lgfinal<-tabela_lg_temp
-    }else{
-      tabela_lgfinal<-rbind(tabela_lgfinal,tabela_lg_temp)}
-  }
-  #write.table(tabela_lgfinal, file=paste0(dir,'otimizado_processado',ifile,'.csv'),row.names=FALSE,sep=";",dec = ".")
-  if(!exists("processado_geral")){
-    processado_geral<-tabela_lgfinal
-  }else{
-    processado_geral<-rbind(processado_geral,tabela_lgfinal)}
-  rm(tabela_lgfinal)
-}
-tabela_lg<-tabela_lg[order(tabela_lg_temp$aco,tabela_lg_temp$sgf_ini,tabela_lg_temp$lg_placao,decreasing = c(FALSE, TRUE, FALSE)),]
-write.table(processado_geral, file=paste0(dir,'otimizado_processado_geral.csv'),row.names=FALSE,sep=";",dec = ".")
-rm(processado_geral)
-
-
-if(length(aco_disponíveis)!=length(df_redmax$Arquivo)){
-  print("Atenção, nem todas opções esperadas foram processadas.........!!!!!!!!!!!!!!!!!!!!!")}
-
-########################################################################################################################################################################################################################################################
-########################################################################################################################################################################################################################################################
-########################################################################################################################################################################################################################################################
-#                                                                                                            Otimizador de larguras
-########################################################################################################################################################################################################################################################
-########################################################################################################################################################################################################################################################
-########################################################################################################################################################################################################################################################
-
-
-
-#CARREGAMENTO PARA PREPARAR TABELA DO PADRÃO COM LARGURAS DE BQ-----------------------------------------------
-BD = 'D:/Agrupamento LG/otimizado_processado_geral.csv'
-dataset <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
-
-head(dataset)
-
-#Grupos dos aços distintos
-sgf_distintos<-unique(dataset$sgf_ini)
-acos<-unique(dataset$aco)
-
-df_consolidado<-data.frame(lg_real=0,lgplacao=0,lgmin=0,lgmax=0,aco=0)
-df_temp<-df_consolidado
-df_consolidado<-df_consolidado[df_consolidado>0,]
-for(aco in acos){
-  temp_otimizado<-dataset[dataset[,'aco']==aco,c(1,2,3,13,8)]
-  
-  for(lg_placao in temp_otimizado[,1]){
-    temp_lgplacao<-temp_otimizado[temp_otimizado[,1]==lg_placao,1]
-    temp_lgmin<-temp_otimizado[temp_otimizado[,1]==lg_placao,2]
-    temp_lgmax<-temp_otimizado[temp_otimizado[,1]==lg_placao,3]
-    temp_aco<-temp_otimizado[temp_otimizado[,1]==lg_placao,4]
-    temp_parametro<-temp_otimizado[temp_otimizado[,1]==lg_placao,5]
-    
-    for(lg_real in temp_lgmin:temp_lgmax){
-      df_temp$lg_real<-lg_real
-      df_temp$lgplacao<-temp_lgplacao
-      df_temp$lgmin<-temp_lgmin
-      df_temp$lgmax<-temp_lgmax
-      df_temp$aco<-temp_aco
-      df_temp$parametro<-temp_parametro
-      df_consolidado<-rbind(df_consolidado,df_temp)
-    }
-  }
-}
-write.table(df_consolidado, file="D:/Agrupamento LG/tabela_largura.csv",row.names=FALSE,sep=";")
-
-BD = 'D:/Agrupamento LG/tabela_largura.csv'
-df_consolidado <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
-
-
-#uniao do df_consolidado com a sequencia de lingotamento----------------------------------------------------------------
-seqlingfim<-seqlingfimbk
-
-df_consolidado$chave<-paste0(df_consolidado$aco,';',df_consolidado$lg_real)
-head(df_consolidado)
-
-seqlingfim$chave1<-paste0(seqlingfim$grupo_aco,';',seqlingfim$LGBQ)
-seqlingfim$chave2<-paste0(seqlingfim$grupo_aco_post,';',seqlingfim$LGBQ_post)
-seqlingfim$id_mix<-ifelse(seqlingfim$PdCST!=seqlingfim$PdCST_post,1,0)
-seqlingfim$id_TD<-ifelse(seqlingfim$SeqCorr!=seqlingfim$SeqCorr_post,1,0)
-head(seqlingfim)
-
-#JOIN DO 1 PADRAO COM df_consolidado
-seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
-
-#JOIN DO 2 PADRAO COM df_consolidado
-seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
-
-
-#seqlingfim[seqlingfim$grupo_aco=='UBC02',] EXEMPLO 380523305, 141324108
-#seqlingfim[seqlingfim$Placao==141324108,] EXEMPLO 380523305, 141324108
-
-#verificar duplicidade
-#a<-aggregate(PdCST ~ Placao,seqlingfim,FUN=length)
-#a[a$PdCST>1,]
-
-head(seqlingfim)
-ACOS<-unique(seqlingfim[,'grupo_aco'])
-campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD','parametro.x')
-
-
-df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLvarsim_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,
-                      reducao_sim=0.0,reducao_real=0.0,N_Lg=0.0,perda_ton_simul=0.0,perda_ton_real=0.0,MLgeral_sim=0.0,MLgeral_real=0.0,Parametros='',stringsAsFactors = F)
-if(exists("df_resumo_temp")){rm("df_resumo_temp")}
-for(aco in c(ACOS,'GERAL')){
-  if(aco!='GERAL'){
-    vetor<-grepl(paste0(aco),seqlingfim[,'grupo_aco'])
-  }else{
-    vetor<-seqlingfim$lgplacao.x>0}
-  
-  resultados<-seqlingfim[vetor,campos]
-  TOTAL<-NROW(resultados)
-  
-  if(aco=='GERAL'){
-    npl_dist<-NROW(dataset)  
-  }else{
-    npl_dist<-NROW(dataset[dataset$aco==aco,])  
-  }
-  
-  
-  ML_simulado<-sum(resultados$lgplacao.x!=resultados$lgplacao.y)
-  ML_real<-sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
-  MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,3)
-  
-  perda_corte_simul<-round(sum(abs(resultados$lgplacao.x/1000-resultados$lgplacao.y/1000)/(resultados$lgplacao.x/1000)*10*0.225*7.83),2)
-  perda_corte_real<-round(sum(abs(resultados$lg_infln_placa/1000-resultados$lg_infln_placa_post/1000)/(resultados$lg_infln_placa/1000)*10*0.225*7.83),2)
-  
-  reducao_sim<-round(mean(abs(resultados$lgplacao.x-resultados$LGBQ)),2)
-  reducao_real<-round(mean(abs(resultados$lg_infln_placa-resultados$LGBQ)),2)
-  
-  MLmenor40simul<-round(mean(ifelse(abs(resultados$lgplacao.x-resultados$lgplacao.y)<=40,1,0)),3)
-  MLmenor40real<-round(mean(ifelse(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post)<=40,1,0)),3)
-  
-  MLgeral_sim<-round(mean(ifelse(abs(resultados$lgplacao.x-resultados$lgplacao.y)>0,1,0)),3)
-  MLgeral_real<-round(mean(ifelse(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post)>0,1,0)),3)
-  
-  parametro<-resultados[1,'parametro.x']
-  
-  avg_simulado<-round(mean(resultados$lgplacao.x),2)
-  avg_real<-round(mean(resultados$lg_infln_placa),2)
-  
-  df_resumo_temp<-data.frame(aco=aco,ML_simulado=ML_simulado,ML_real=ML_real,MLvarsim_real=MLvarsim_real,MLmenor40simul=MLmenor40simul,MLmenor40real=MLmenor40real,
-                             avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,
-                             N_Lg=npl_dist,perda_ton_simul=perda_corte_simul,perda_ton_real=perda_corte_real,MLgeral_sim=MLgeral_sim,MLgeral_real=MLgeral_real,
-                             Parametros=parametro,stringsAsFactors = F)
-  df_resumo<-rbind(df_resumo,df_resumo_temp)
-  df_resumo<-df_resumo[df_resumo[,2]>0,]
-}
-
-
-arquivo_nome<-"D:/Agrupamento LG/resumo_simulacao_ltq.csv"
-if(file.exists(arquivo_nome)){
-  tables<-read.table(file = arquivo_nome, header = TRUE, sep=';',dec = ",", stringsAsFactors = FALSE)
-  tables<-rbind(tables,df_resumo)}
-if(!exists("tables")){tables<-df_resumo}
-tables<-tables[order(tables$aco,tables$MLvarsim_real),]
-write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
-
-
-################################
-################################
-################################
-################################
+                
+                passo_loop<-passo_loop+1
+                qtde_combinacoes<-length(redmin_loops)*length(redmin_loopsfx2)*length(Aumentar_media_loops)*length(Aumentar_red_loops)*length(Aumentar_red_loops_fx2)*length(tol_agrups)*length(tipo_priorizacoes)*length(fx_adds)
+                print(paste0(passo_loop,' de ',qtde_combinacoes))
+                print(Sys.time())
+                
+                ################################
+                ################################
+                ################################
+                ################################
+                
+                
+                
+                #criacao do dataframe com os parâmetros que serão utilizados
+                if(proposta_agrupamento=='LTQ'){
+                  #aumentar_lg_media<-1 busca também subir a largura média da placa.
+                  
+                  df_UBC01<-data.frame(Arquivo='UBC01',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_UBC02<-data.frame(Arquivo='UBC02',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =85+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_BC03<-data.frame(Arquivo='BC03',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12+redmin_loop,Red_min_fx2 =12+redmin_loopfx2,Red_min_fx3 =12+redmin_loopfx2,Red_max_fx1 =42+Aumentar_red_loop,Red_max_fx2 =42+Aumentar_red_loop_fx2,Red_max_fx3 =42+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =1,stringsAsFactors = F)
+                  df_redmax<-rbind(df_UBC01,df_UBC02,df_UBC,df_BC,df_BC03,df_Q7,df_BS,df_TRIP,df_DEMAIS)
+                  
+                }else{
+                  
+                  df_UBC<-data.frame(Arquivo='UBC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =85+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =85+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1729+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_BC<-data.frame(Arquivo='BC',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop_fx2,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1580+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_Q7<-data.frame(Arquivo='Q7',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_BS<-data.frame(Arquivo='BS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =75+Aumentar_red_loop,Red_max_fx2 =75+Aumentar_red_loop_fx2,Red_max_fx3 =75+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_TRIP<-data.frame(Arquivo='TRIP',Red_min_fx1 =12,Red_min_fx2 =12,Red_min_fx3 =12,Red_max_fx1 =42,Red_max_fx2 =42,Red_max_fx3 =42,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_DEMAIS<-data.frame(Arquivo='DEMAIS',Red_min_fx1 =18+redmin_loop,Red_min_fx2 =18+redmin_loopfx2,Red_min_fx3 =18+redmin_loopfx2,Red_max_fx1 =62+Aumentar_red_loop,Red_max_fx2 =62+Aumentar_red_loop,Red_max_fx3 =62+Aumentar_red_loop,Incerteza=12,Tol_agrup=tol_agrup,Lg_tran=1490+fx_add,Lg_tran2=1490+fx_add,IL=40,Aumentar_media =Aumentar_media_loop,stringsAsFactors = F)
+                  df_redmax<-rbind(df_UBC,df_BC,df_Q7,df_BS,df_TRIP,df_DEMAIS)
+                  
+                }
+                print(proposta_agrupamento)
+                
+                #Essa verificação é para debug, evitando entrar no loop para checar os valores
+                #df_redmax<-df_redmax[df_redmax[,'Arquivo']=='UBC',]
+                #ifile<-'UBC'
+                
+                #chave final desse for está no final do script
+                for (ifile in intersect(aco_disponíveis,df_redmax$Arquivo)){ 
+                  print(ifile)
+                  texto<-''
+                  df_parametros<-df_redmax[,c('Arquivo','Red_min_fx1','Red_min_fx2','Lg_tran','Lg_tran2','Red_max_fx1','Red_max_fx2','Red_max_fx3','Aumentar_media','Tol_agrup')]
+                  for(nomecolunas in names(df_parametros)) texto<-paste0(texto,nomecolunas,'=',df_parametros[df_parametros$Arquivo==ifile,nomecolunas],';')
+                  texto<-paste0(texto,'Proposta ',proposta_agrupamento,'; Priorizacao ',tipo_priorizacao)
+                  
+                  
+                  dir <-'d:/Agrupamento LG/'
+                  BD = paste0(dir,'geral.txt') 
+                  tabela_lg <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
+                  tabela_lg<-tabela_lg[tabela_lg[,1]==ifile,c('lg_infln_bq','Peso')]
+                  tabela_lg<-data.frame(lapply(tabela_lg, function(x) as.numeric(gsub(",",".",gsub(" ","", x)))))
+                  
+                  lg_ped_min <- as.numeric(749-add_mm_to_lg_targe_ltq+seq(1:(1881+add_mm_to_lg_targe_ltq-750)))
+                  peso_inicial <- as.numeric(rep_len(0.001, length(lg_ped_min)))
+                  dataframe_inicial <- data.frame(lg_ped_min,peso_inicial)
+                  tabela_lg<- left_join(dataframe_inicial, tabela_lg, by = c("lg_ped_min" = "lg_infln_bq"))
+                  tabela_lg[,2]<-tabela_lg[,2]+ifelse(is.na(tabela_lg[,3]), 0, tabela_lg[,3])
+                  tabela_lg[,3]<-NULL
+                  
+                  tabela_lg[,'lg_ped_min']<-tabela_lg[,'lg_ped_min']+add_mm_to_lg_targe_ltq
+                  aumentar_lg_media<-df_redmax[df_redmax$Arquivo==ifile,'Aumentar_media']
+                  IL<-df_redmax[df_redmax$Arquivo==ifile,'IL']
+                  tol_agrup_lg<-df_redmax[df_redmax$Arquivo==ifile,'Tol_agrup']
+                  incerteza <-df_redmax[df_redmax$Arquivo==ifile,'Incerteza']
+                  fx1 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx1']#(85-12=73)
+                  fx2 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx2']#(85-12=73)
+                  fx3 <-df_redmax[df_redmax$Arquivo==ifile,'Red_max_fx3']#(85-12=73)
+                  red_min_1 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx1'] #(18)
+                  red_min_2 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx2'] #(18)
+                  red_min_3 <-df_redmax[df_redmax$Arquivo==ifile,'Red_min_fx3'] #(18)
+                  lg_fx <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran'] #largura de transição para critérios diferentes
+                  lg_fx2 <-df_redmax[df_redmax$Arquivo==ifile,'Lg_tran2'] #largura de transição para critérios diferentes
+                  
+                  tabela_lg$lg_ped_max_fx1<-tabela_lg[,'lg_ped_min']+fx1-(incerteza+red_min_1)
+                  tabela_lg$lg_ped_max_fx2<-tabela_lg[,'lg_ped_min']+fx2-(incerteza+red_min_2)
+                  tabela_lg$lg_ped_max_fx3<-tabela_lg[,'lg_ped_min']+fx3-(incerteza+red_min_3)
+                  
+                  tabela_lg[,2]<-tabela_lg[,2]*(1+aumentar_lg_media*tabela_lg[,1]) #tabela_lg[,2]=Qtde de placao * #tabela_lg[,'lg_placao']=Largura do placao, seria quase uma unidade de peso
+                  tabela_lg$peso_acumulado_max<-0
+                  tabela_lg$peso_original<-tabela_lg[,2]
+                  tabela_lg$peso_acum_proc<-0
+                  tabela_lg$peso_inicial2<-tabela_lg$peso_inicial
+                  
+                  tabbk<-tabela_lg
+                  #tabela_lg<-tabbk
+                  
+                  
+                  if(exists("output")){rm("output")}
+                  prioridade<-1
+                  peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
+                  while (peso_temp>0){
+                    
+                    #acumula o peso das faixas de pedidos na linha da largura de cada placao 
+                    #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
+                    for (i in NROW(tabela_lg):1){
+                      if(lg_fx!=lg_fx2){#otimiza velocidade de execução
+                        tabela_lg[i,'peso_acumulado_max_fx1']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'] & tabela_lg[,'lg_ped_max_fx1']<=lg_fx,'peso_inicial'])
+                        tabela_lg[i,'peso_acumulado_max_fx2']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx2'] ,'peso_inicial'])
+                        tabela_lg[i,'peso_acumulado_max_fx3']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx3'] & tabela_lg[,'lg_ped_min']>=lg_fx2 ,'peso_inicial'])
+                        tabela_lg[i,'peso_acumulado_max']<-max(c(tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'peso_acumulado_max_fx3']))
+                        tabela_lg[i,'lg_ped_max']<-ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'lg_ped_max_fx1'],
+                                                          ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2'],tabela_lg[i,'lg_ped_max_fx3']))
+                        tabela_lg[i,'lg_placao']<-tabela_lg[i,'lg_ped_max']+ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],red_min_1,
+                                                                                   ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],red_min_2,red_min_3))
+                      }else{
+                        tabela_lg[i,'peso_acumulado_max']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'],'peso_inicial'])
+                        tabela_lg[i,'lg_ped_max']<-tabela_lg[i,'lg_ped_max_fx1']
+                        tabela_lg[i,'lg_placao']<-tabela_lg[i,'lg_ped_max_fx1']+red_min_1
+                      }
+                    }
+                    #tabela_lg[tabela_lg[,'peso_acumulado_max']==max(tabela_lg[,'peso_acumulado_max']),] depuracao
+                    
+                    #acha o valor que maximiza o volume
+                    peso_acumulado_max <- max(tabela_lg[,'peso_acumulado_max'],na.rm=TRUE)
+                    lg_max <- min(tabela_lg[tabela_lg['peso_acumulado_max']==peso_acumulado_max,'lg_placao'],na.rm=TRUE)
+                    
+                    #pega a maior e menor largura de pedido para o maior peso acumulado
+                    lg_min_pedido_temp <- min(tabela_lg[tabela_lg[,'lg_placao']==lg_max,'lg_ped_min'],na.rm=TRUE)
+                    lg_max_pedido_temp <- max(tabela_lg[tabela_lg[,'lg_placao']==lg_max,'lg_ped_max'],na.rm=TRUE)
+                    
+                    faixa_temp<-paste0(lg_min_pedido_temp,'~',lg_max_pedido_temp)
+                    
+                    #limpa o peso de faixas já usadas
+                    peso_acumulado_geral<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_original'])
+                    tabela_lg[tabela_lg[,'lg_ped_min']>=lg_min_pedido_temp & tabela_lg[,'lg_ped_min']<=lg_max_pedido_temp,'peso_inicial']<-0
+                    peso_temp<-sum(tabela_lg[,'peso_inicial'],na.rm = T)
+                    
+                    output_temp<- data.frame(lg_placao=lg_max,lg_ped_min=lg_min_pedido_temp,lg_ped_max=lg_max_pedido_temp,peso_acum=peso_acumulado_max,peso_acum_geral=peso_acumulado_geral,prioridade=prioridade)
+                    if(exists("output")){output<-rbind(output_temp,output)}else{output<-output_temp}
+                    prioridade<-prioridade+1
+                  }
+                  lgbq<-tabela_lg[,c('lg_ped_min','peso_original')]
+                  
+                  
+                  #aqui as faixas são ajustadas...
+                  #Dentro da função ajuste_lg_adjacentes foi comentado um código para que esse loop do código principal possa limpar as faixas redundantes ou absurdas
+                  tabela_lg<-ajuste_lg_adjacentes(output,red_min1=red_min_1,red_min2=red_min_2,red_min3=red_min_3,
+                                                  red_max1=(fx1-incerteza),red_max2=(fx2-incerteza),red_max3=(fx3-incerteza),
+                                                  Lg_tran=lg_fx,Lg_tran2=lg_fx2,tol_agrup = tol_agrup,prioriza_O0_P1=tipo_priorizacao,IL=40)
+                  #atualiza o peso correto da faixa
+                  for(i in 1:NROW(tabela_lg)){tabela_lg[i,'peso_acum']<-sum(lgbq[lgbq[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & lgbq[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max'],'peso_original'])}
+                  #atualiza a prioridade
+                  tabela_lg<-tabela_lg[order(-tabela_lg[,'peso_acum']),] 
+                  tabela_lg$prioridade <- seq.int(nrow(tabela_lg))
+                  tabela_lg<-tabela_lg[order(tabela_lg[,'lg_ped_min']),]
+                  
+                  
+                  
+                  #depurar
+                  #for(achar_vazio in 1:(NROW(tabela_lg)-1)){if((tabela_lg[achar_vazio+1,2]-tabela_lg[achar_vazio,3])>1){print(paste0(tabela_lg[achar_vazio,3],'~',tabela_lg[achar_vazio+1,2]))}}
+                  
+                  #Criando campos dos delta minimo e máximo entre lg de placao e pedido
+                  tabela_lg$lg_placao_pedido_max <-(tabela_lg[,1]-tabela_lg[,2])
+                  tabela_lg$lg_placao_pedido_min <-(tabela_lg[,1]-tabela_lg[,3])
+                  tabela_lg$parametros<-texto
+                  
+                  #Salva o arquivo para leitura
+                  write.table(tabela_lg, file=paste0(dir,'otimizado_',ifile,'.csv'),row.names=FALSE,sep=";",dec = ".")
+                  #write.table(tabela_lg, file=paste0(dir,texto,'.csv'),row.names=FALSE,sep=";",dec = ".")
+                  
+                }# chave do loop do arquivo
+                
+                
+                #ajustar para o preenchimento do padrao---------------------------------
+                if(proposta_agrupamento=='LTQ'){
+                  arquivo <- c('UBC01','UBC02','UBC','BC','BC03','Q7','BS','TRIP','DEMAIS')
+                  ubc<-c(19,20)
+                  ubc01<-c(01)
+                  ubc02<-c(02)
+                  bc<-c(09,10,06,27,17,18,30,34)
+                  bc03<-c(03)
+                  q7<-c(31)
+                  bs<-c(41,07,29,14,33,13)
+                  trip<-c(38,43)
+                  demais<-c(00)
+                  if(simular0_gerarpadrao1==1){
+                    list_padrao<-list(UBC=ubc,UBC01=ubc01,UBC02=ubc02,BC=bc,BC03=bc03,Q7=q7,BS=bs,TRIP=trip,DEMAIS=demais)  
+                  }else{
+                    list_padrao<-list(UBC=ubc[1],UBC01=ubc01[1],UBC02=ubc02[1],BC=bc[1],BC03=bc03[1],Q7=q7[1],BS=bs[1],TRIP=trip[1],DEMAIS=demais[1])}
+                  
+                }else{
+                  arquivo <- c('UBC','BC','Q7','BS','TRIP','DEMAIS')
+                  ubc<-c(19,20,01,02)
+                  bc<-c(09,10,06,27,17,18,30,34,03)
+                  q7<-c(31)
+                  bs<-c(41,07,29,14,33,13)
+                  trip<-c(38,43)
+                  demais<-c(00)
+                  if(simular0_gerarpadrao1==1){
+                    list_padrao<-list(UBC=ubc,BC=bc,Q7=q7,BS=bs,TRIP=trip,DEMAIS=demais)
+                  }else{
+                    list_padrao<-list(UBC=ubc[1],BC=bc[1],Q7=q7[1],BS=bs[1],TRIP=trip[1],DEMAIS=demais[1])}
+                }
+                arquivo<-df_redmax[,'Arquivo']
+                for (ifile in arquivo){ 
+                  tabela_lg <- read.table(file=paste0('d:/Agrupamento LG/otimizado_',ifile,'.csv'), header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
+                  for (sgf in list_padrao[[ifile]]){
+                    tabela_lg_temp<-tabela_lg
+                    tabela_lg_temp$sgf_ini<-sgf
+                    tabela_lg_temp$sgf_fim<-sgf
+                    tabela_lg_temp$esppl_ini<-215
+                    tabela_lg_temp$esppl_fim<-239
+                    
+                    tabela_lg_temp$aco<-ifile
+                    if(!exists("tabela_lgfinal")){
+                      tabela_lgfinal<-tabela_lg_temp
+                    }else{
+                      tabela_lgfinal<-rbind(tabela_lgfinal,tabela_lg_temp)}
+                  }
+                  #write.table(tabela_lgfinal, file=paste0(dir,'otimizado_processado',ifile,'.csv'),row.names=FALSE,sep=";",dec = ".")
+                  if(!exists("processado_geral")){
+                    processado_geral<-tabela_lgfinal
+                  }else{
+                    processado_geral<-rbind(processado_geral,tabela_lgfinal)}
+                  rm(tabela_lgfinal)
+                }
+                tabela_lg<-tabela_lg[order(tabela_lg_temp$aco,tabela_lg_temp$sgf_ini,tabela_lg_temp$lg_placao,decreasing = c(FALSE, TRUE, FALSE)),]
+                write.table(processado_geral, file=paste0(dir,'otimizado_processado_geral.csv'),row.names=FALSE,sep=";",dec = ".")
+                rm(processado_geral)
+                
+                
+                if(length(aco_disponíveis)!=length(df_redmax$Arquivo)){
+                  print("Atenção, nem todas opções esperadas foram processadas.........!!!!!!!!!!!!!!!!!!!!!")}
+                
+                ########################################################################################################################################################################################################################################################
+                ########################################################################################################################################################################################################################################################
+                ########################################################################################################################################################################################################################################################
+                #                                                                                                            Otimizador de larguras
+                ########################################################################################################################################################################################################################################################
+                ########################################################################################################################################################################################################################################################
+                ########################################################################################################################################################################################################################################################
+                
+                
+                
+                #CARREGAMENTO PARA PREPARAR TABELA DO PADRÃO COM LARGURAS DE BQ-----------------------------------------------
+                BD = 'D:/Agrupamento LG/otimizado_processado_geral.csv'
+                dataset <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
+                
+                head(dataset)
+                
+                #Grupos dos aços distintos
+                sgf_distintos<-unique(dataset$sgf_ini)
+                acos<-unique(dataset$aco)
+                
+                df_consolidado<-data.frame(lg_real=0,lgplacao=0,lgmin=0,lgmax=0,aco=0)
+                df_temp<-df_consolidado
+                df_consolidado<-df_consolidado[df_consolidado>0,]
+                for(aco in acos){
+                  temp_otimizado<-dataset[dataset[,'aco']==aco,c(1,2,3,13,8)]
+                  
+                  for(lg_placao in temp_otimizado[,1]){
+                    temp_lgplacao<-temp_otimizado[temp_otimizado[,1]==lg_placao,1]
+                    temp_lgmin<-temp_otimizado[temp_otimizado[,1]==lg_placao,2]
+                    temp_lgmax<-temp_otimizado[temp_otimizado[,1]==lg_placao,3]
+                    temp_aco<-temp_otimizado[temp_otimizado[,1]==lg_placao,4]
+                    temp_parametro<-temp_otimizado[temp_otimizado[,1]==lg_placao,5]
+                    
+                    for(lg_real in temp_lgmin:temp_lgmax){
+                      df_temp$lg_real<-lg_real
+                      df_temp$lgplacao<-temp_lgplacao
+                      df_temp$lgmin<-temp_lgmin
+                      df_temp$lgmax<-temp_lgmax
+                      df_temp$aco<-temp_aco
+                      df_temp$parametro<-temp_parametro
+                      df_consolidado<-rbind(df_consolidado,df_temp)
+                    }
+                  }
+                }
+                write.table(df_consolidado, file="D:/Agrupamento LG/tabela_largura.csv",row.names=FALSE,sep=";")
+                
+                BD = 'D:/Agrupamento LG/tabela_largura.csv'
+                df_consolidado <- read.table(file = BD, header = TRUE, sep=';',dec = ".", stringsAsFactors = FALSE)
+                
+                
+                #uniao do df_consolidado com a sequencia de lingotamento----------------------------------------------------------------
+                seqlingfim<-seqlingfimbk
+                
+                df_consolidado$chave<-paste0(df_consolidado$aco,';',df_consolidado$lg_real)
+                head(df_consolidado)
+                
+                seqlingfim$chave1<-paste0(seqlingfim$grupo_aco,';',seqlingfim$LGBQ)
+                seqlingfim$chave2<-paste0(seqlingfim$grupo_aco_post,';',seqlingfim$LGBQ_post)
+                seqlingfim$id_mix<-ifelse(seqlingfim$PdCST!=seqlingfim$PdCST_post,1,0)
+                seqlingfim$id_TD<-ifelse(seqlingfim$SeqCorr!=seqlingfim$SeqCorr_post,1,0)
+                head(seqlingfim)
+                
+                #JOIN DO 1 PADRAO COM df_consolidado
+                seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave1" , by.y = "chave")
+                
+                #JOIN DO 2 PADRAO COM df_consolidado
+                seqlingfim<- merge(seqlingfim,df_consolidado, by.x = "chave2" , by.y = "chave")
+                
+                
+                #seqlingfim[seqlingfim$grupo_aco=='UBC02',] EXEMPLO 380523305, 141324108
+                #seqlingfim[seqlingfim$Placao==141324108,] EXEMPLO 380523305, 141324108
+                
+                #verificar duplicidade
+                #a<-aggregate(PdCST ~ Placao,seqlingfim,FUN=length)
+                #a[a$PdCST>1,]
+                
+                head(seqlingfim)
+                ACOS<-unique(seqlingfim[,'grupo_aco'])
+                campos<-c('DT.ling.','Placao','Placao_post','PdCST','PdCST_post','SGF','SGF_post','lg_infln_placa','lg_infln_placa_post','lgplacao.x','lgplacao.y','LGBQ','LGBQ_post','grupo_aco','grupo_aco_post','cd_facc','cd_facc_post','id_mix','id_TD','parametro.x')
+                
+                
+                df_resumo<-data.frame(aco='',ML_simulado=0.0,ML_real=0.0,MLvarsim_real=0.0,MLmenor40simul=0.0,MLmenor40real=0.0,avg_simulado=0.0,avg_real=0.0,
+                                      reducao_sim=0.0,reducao_real=0.0,N_Lg=0.0,perda_ton_simul=0.0,perda_ton_real=0.0,MLgeral_sim=0.0,MLgeral_real=0.0,Parametros='',stringsAsFactors = F)
+                if(exists("df_resumo_temp")){rm("df_resumo_temp")}
+                for(aco in c(ACOS,'GERAL')){
+                  if(aco!='GERAL'){
+                    vetor<-grepl(paste0(aco),seqlingfim[,'grupo_aco'])
+                  }else{
+                    vetor<-seqlingfim$lgplacao.x>0}
+                  
+                  resultados<-seqlingfim[vetor,campos]
+                  TOTAL<-NROW(resultados)
+                  
+                  if(aco=='GERAL'){
+                    npl_dist<-NROW(dataset)  
+                  }else{
+                    npl_dist<-NROW(dataset[dataset$aco==aco,])  
+                  }
+                  
+                  
+                  ML_simulado<-sum(resultados$lgplacao.x!=resultados$lgplacao.y)
+                  ML_real<-sum(resultados$lg_infln_placa!=resultados$lg_infln_placa_post)
+                  MLvarsim_real<-round((ML_simulado-ML_real)/ML_real,3)
+                  
+                  perda_corte_simul<-round(sum(abs(resultados$lgplacao.x/1000-resultados$lgplacao.y/1000)/(resultados$lgplacao.x/1000)*10*0.225*7.83),2)
+                  perda_corte_real<-round(sum(abs(resultados$lg_infln_placa/1000-resultados$lg_infln_placa_post/1000)/(resultados$lg_infln_placa/1000)*10*0.225*7.83),2)
+                  
+                  reducao_sim<-round(mean(abs(resultados$lgplacao.x-resultados$LGBQ)),2)
+                  reducao_real<-round(mean(abs(resultados$lg_infln_placa-resultados$LGBQ)),2)
+                  
+                  MLmenor40simul<-round(mean(ifelse(abs(resultados$lgplacao.x-resultados$lgplacao.y)<=40,1,0)),3)
+                  MLmenor40real<-round(mean(ifelse(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post)<=40,1,0)),3)
+                  
+                  MLgeral_sim<-round(mean(ifelse(abs(resultados$lgplacao.x-resultados$lgplacao.y)>0,1,0)),3)
+                  MLgeral_real<-round(mean(ifelse(abs(resultados$lg_infln_placa-resultados$lg_infln_placa_post)>0,1,0)),3)
+                  
+                  parametro<-resultados[1,'parametro.x']
+                  
+                  avg_simulado<-round(mean(resultados$lgplacao.x),2)
+                  avg_real<-round(mean(resultados$lg_infln_placa),2)
+                  
+                  df_resumo_temp<-data.frame(aco=aco,ML_simulado=ML_simulado,ML_real=ML_real,MLvarsim_real=MLvarsim_real,MLmenor40simul=MLmenor40simul,MLmenor40real=MLmenor40real,
+                                             avg_simulado=avg_simulado,avg_real=avg_real,reducao_sim=reducao_sim,reducao_real=reducao_real,
+                                             N_Lg=npl_dist,perda_ton_simul=perda_corte_simul,perda_ton_real=perda_corte_real,MLgeral_sim=MLgeral_sim,MLgeral_real=MLgeral_real,
+                                             Parametros=parametro,stringsAsFactors = F)
+                  df_resumo<-rbind(df_resumo,df_resumo_temp)
+                  df_resumo<-df_resumo[df_resumo[,2]>0,]
+                }
+                
+                
+                arquivo_nome<-"D:/Agrupamento LG/resumo_simulacao_ltq.csv"
+                if(file.exists(arquivo_nome)){
+                  tables<-read.table(file = arquivo_nome, header = TRUE, sep=';',dec = ",", stringsAsFactors = FALSE)
+                  tables<-rbind(tables,df_resumo)}
+                if(!exists("tables")){tables<-df_resumo}
+                tables<-tables[order(tables$aco,tables$MLvarsim_real),]
+                write.table(tables, file=arquivo_nome,row.names=F,sep=';',dec = ",")
+                
+                
+                ################################
+                ################################
+                ################################
+                ################################
               }
             }
           }
@@ -738,4 +740,3 @@ print(df_resumo)
 
 #Verificar as diferenças entre o padrão e a proposta
 #write.table(resultados, file="seq_simulado4.csv",row.names=FALSE,sep=";")
-
