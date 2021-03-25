@@ -407,9 +407,9 @@ for(redmin_loop in redmin_loops){#
                     #É importante esse loop ficar dentro do outro loop, só assim calcula o peso e desconsidera volumes já considerados
                     for (i in NROW(tabela_lg):1){
                       if(lg_fx!=lg_fx2){#otimiza velocidade de execução
-                        tabela_lg[i,'peso_acumulado_max_fx1']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'] & tabela_lg[,'lg_ped_max_fx1']<=lg_fx,'peso_inicial'])
+                        tabela_lg[i,'peso_acumulado_max_fx1']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx1'] & tabela_lg[i,'lg_ped_max_fx1']<=lg_fx,'peso_inicial'])
                         tabela_lg[i,'peso_acumulado_max_fx2']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx2'] ,'peso_inicial'])
-                        tabela_lg[i,'peso_acumulado_max_fx3']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx3'] & tabela_lg[,'lg_ped_min']>=lg_fx2 ,'peso_inicial'])
+                        tabela_lg[i,'peso_acumulado_max_fx3']<-sum(tabela_lg[tabela_lg[,'lg_ped_min']>=tabela_lg[i,'lg_ped_min'] & tabela_lg[,'lg_ped_min']<=tabela_lg[i,'lg_ped_max_fx3'] & tabela_lg[i,'lg_ped_min']>=lg_fx2 ,'peso_inicial'])
                         tabela_lg[i,'peso_acumulado_max']<-max(c(tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'peso_acumulado_max_fx3']))
                         tabela_lg[i,'lg_ped_max']<-ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx1'],tabela_lg[i,'lg_ped_max_fx1'],
                                                           ifelse(tabela_lg[i,'peso_acumulado_max']==tabela_lg[i,'peso_acumulado_max_fx2'],tabela_lg[i,'lg_ped_max_fx2'],tabela_lg[i,'lg_ped_max_fx3']))
