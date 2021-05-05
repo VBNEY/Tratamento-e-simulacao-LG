@@ -188,44 +188,38 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
       if(lg_pedmax_atual<Lg_tran){reducao_maxima<-red_max1}
       if(lg_pedinf_atual>Lg_tran2){reducao_maxima<-red_max3}
       
-      if(prior_ant<prior_post){#Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
-        #se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
-        lgfxmin<-lg_pedinf_atual+reducao_minina
-        lgfxmax<-lg_pedinf_atual+reducao_maxima
+      
+      #Se o anterior for prioritário, a maior aproximação com o anterior é a lg_pedido +redução mínima
+      #se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
+      lgfxmin<-lg_pedinf_atual+reducao_minina
+      lgfxmax<-lg_pedinf_atual+reducao_maxima
+      
+      if(prior_ant<prior_post){
         lg_temp_medio<-lg_pedmax_atual+reducao_minina
-        for(lg_temp in lgfxmax:lgfxmin){
-          if((lg_temp-lg_placao_ant)<=IL & (lg_placao_post-lg_temp)<=IL){
-            lg_temp_medio<-lg_temp
-          }
-        }
-        if((lg_placao_post-lg_temp_medio)<=IL & (lg_temp_medio-lg_placao_ant)<=IL & lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima)){
-          lg_placao_atual<-lg_temp_medio}
-        
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+2,lg_placao_atual)
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+3,lg_placao_atual)
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual+4,lg_placao_atual)
-        x[indice,'lg_placao']<-lg_placao_atual
-      }
-      else{
-        #se ML for maior que 40mm para qualquer lado, aproxima do de maior volume
-        lgfxmin<-lg_pedinf_atual+reducao_minina
-        lgfxmax<-lg_pedinf_atual+reducao_maxima
+        fx_temp<-lgfxmax:lgfxmin
+        idmult<-1
+      }else{
         lg_temp_medio<-lg_pedinf_atual+reducao_maxima
-        for(lg_temp in lgfxmin:lgfxmax){
-          if((lg_temp-lg_placao_ant)<=IL & (lg_placao_post-lg_temp)<=IL){
-            lg_temp_medio<-lg_temp
-          }
-        }
-        if((lg_placao_post-lg_temp_medio)<=IL & (lg_temp_medio-lg_placao_ant)<=IL & lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima)){
-          lg_placao_atual<-lg_temp_medio}
-        
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-1,lg_placao_atual)#Não deixar a mesma largura de placao se repetir
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-2,lg_placao_atual)
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-3,lg_placao_atual)
-        lg_placao_atual<-ifelse(length(x[x[,'lg_placao']==lg_placao_atual,'lg_placao'])>1,lg_placao_atual-4,lg_placao_atual)
-        x[indice,'lg_placao']<-lg_placao_atual
+        fx_temp<-lgfxmin:lgfxmax
+        idmult<--1
       }
+      
+      for(lg_temp in fx_temp){
+        if((lg_temp-lg_placao_ant)<=IL & (lg_placao_post-lg_temp)<=IL){
+          lg_temp_medio<-lg_temp
+        }
+      }
+      
+      id_chave<-0
+      for(loop_test in 0:5){
+        lg_temp_medio<-lg_temp_medio+loop_test*idmult
+        if(abs(lg_placao_post-lg_temp_medio)<=IL & abs(lg_temp_medio-lg_placao_ant)<=IL &
+           lg_temp_medio>=(lg_pedmax_atual+reducao_minina) & lg_temp_medio<=(lg_pedinf_atual+reducao_maxima) &
+           length(x[x[,'lg_placao']==lg_temp_medio,'lg_placao'])==0 & id_chave==0){
+          id_chave<-1
+          lg_placao_atual<-lg_temp_medio}
+      }
+      x[indice,'lg_placao']<-lg_placao_atual
       x[indice,'iduso']<-1
     }
   }
@@ -245,12 +239,23 @@ ajuste_lg_adjacentes<-function(x,red_min1,red_min2,red_min3,red_max1,red_max2,re
   x<-x[complete.cases(x),]
   x$idnull<-NULL
   x$iduso<-NULL
+  x<-x[order(x[,'lg_ped_min']),]
   
   #PREENCHER VAZIOS DE INTERFACE--------------------------------------------------------
   for(achar_vazio in 1:(NROW(x)-1)){#caso existam vazios entre linhas adjacentes
     if((x[achar_vazio+1,2]-x[achar_vazio,3])>1){
-      lg_placao_temp<-x[achar_vazio,3]+1+fx2-(incerteza+red_min_2)
-      lg_placao_temp<-ifelse(lg_placao_temp==x[achar_vazio+1,'lg_placao'],x[achar_vazio+1,'lg_placao']-1,ifelse(lg_placao_temp==x[achar_vazio-1,'lg_placao'],x[achar_vazio-1,'lg_placao']+1,lg_placao_temp))
+      
+      #Qual a redução mínima adequada...
+      reducao_minina<-red_min2
+      if(x[achar_vazio+1,2]<Lg_tran){reducao_minina<-red_min1}
+      if(x[achar_vazio,3]>Lg_tran2){reducao_minina<-red_min3}
+      
+      #Qual a redução máxima adequada...
+      reducao_maxima<-red_max2
+      if(x[achar_vazio+1,2]<Lg_tran){reducao_maxima<-red_max1}
+      if(x[achar_vazio,3]>Lg_tran2){reducao_maxima<-red_max3}
+      
+      lg_placao_temp<-x[achar_vazio,3]+1+reducao_maxima-incerteza
       output_temp<- data.frame(lg_placao=lg_placao_temp,lg_ped_min=x[achar_vazio,3]+1,lg_ped_max=x[achar_vazio+1,2]-1,peso_acum=0.01,prioridade=NROW(x)+1)
       if(exists("output_temp2")){output_temp2<-rbind(output_temp2,output_temp)}else{output_temp2<-output_temp}}}
   if(exists("output_temp2")){x<-rbind(x,output_temp2)}
@@ -362,6 +367,7 @@ for(redmin_loop in redmin_loops){#
                   tabela_lg <- read.table(file = BD, header = TRUE, sep='\t',dec = ".", stringsAsFactors = FALSE)
                   tabela_lg<-tabela_lg[tabela_lg[,1]==ifile,c('lg_infln_bq','Peso')]
                   tabela_lg<-data.frame(lapply(tabela_lg, function(x) as.numeric(gsub(",",".",gsub(" ","", x)))))
+                  tab_base<-tabela_lg
                   
                   lg_ped_min <- as.numeric(749-add_mm_to_lg_targe_ltq+seq(1:(1881+add_mm_to_lg_targe_ltq-750)))
                   peso_inicial <- as.numeric(rep_len(0.001, length(lg_ped_min)))
@@ -369,6 +375,20 @@ for(redmin_loop in redmin_loops){#
                   tabela_lg<- left_join(dataframe_inicial, tabela_lg, by = c("lg_ped_min" = "lg_infln_bq"))
                   tabela_lg[,2]<-tabela_lg[,2]+ifelse(is.na(tabela_lg[,3]), 0, tabela_lg[,3])
                   tabela_lg[,3]<-NULL
+                  
+                  #Ajuste para deixar mais prx de faixa úteis 
+                  qtde_lg<-NROW(tab_base[,1])
+                  for(nlg_base in 1:(qtde_lg-1)){
+                    peso_base_temp1<-tab_base[nlg_base,2]
+                    peso_base_temp2<-tab_base[nlg_base+1,2]
+                    vetor_fx<-tabela_lg[,1]>tab_base[nlg_base,1] & tabela_lg[,1]<tab_base[nlg_base+1,1]
+                    if(peso_base_temp1<peso_base_temp2){
+                      tabela_lg[vetor_fx,2]<-tabela_lg[vetor_fx,2]+as.numeric(rep_len(sum(vetor_fx),sum(vetor_fx)))/1000
+                    }else{
+                      tabela_lg[vetor_fx,2]<-tabela_lg[vetor_fx,2]*0.5
+                    }
+                  }
+                  
                   
                   tabela_lg[,'lg_ped_min']<-tabela_lg[,'lg_ped_min']+add_mm_to_lg_targe_ltq
                   aumentar_lg_media<-df_redmax[df_redmax$Arquivo==ifile,'Aumentar_media']
